@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>HTML Viewer</title>
+</head>
+<body>
+
+<h3>HTML Text</h3>
+
+<textarea id="htmlInput" rows="10" cols="70">
+<video width="426" controls>
+  <source src="968.mp4" type="video/mp4">
+</video>
+</textarea>
+
+<br><br>
+<button onclick="updatePreview()">Preview</button>
+
+<h3>HTML Preview</h3>
+<iframe id="preview" width="600" height="350"></iframe>
+
+<script>
+// sample mapping
+const samples = {
+  "968.mp4": "https://green968.github.io/968.mp4";
+  "f0f1d668-5756-45ad-a243-492a1bd15697.png": "https://green968.github.io/f0f1d668-5756-45ad-a243-492a1bd15697.png"
+};
+
+function updatePreview() {
+  let html = document.getElementById("htmlInput").value;
+
+  // replace fake filename with real URL
+  for (const key in sample) {
+    html = html.replaceAll(
+      `src="${key}"`,
+      `src="${sample[key]}"`
+    );
+  }
+
+  document.getElementById("preview").srcdoc = html;
+}
+
+// load default preview
+updatePreview();
+</script>
+
+</body>
+</html>
