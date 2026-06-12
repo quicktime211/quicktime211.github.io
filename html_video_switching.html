@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<body>
+<html>
+​
+<h1>HTML video switching</h1>
+<video id="myVideo" width=300 controls autoplay>
+<source id="mp4_src" src="https://green968.github.io/968.mp4" type="video/mp4">
+<source id="ogg_src" src="https://green968.github.io/968.ogg" type="video/ogg">
+</video>
+​
+<p>click the button To switch the video.</p>
+​
+<button onclick="myFunction()">switch</button>
+​
+<script>
+function myFunction()  {
+  document.getElementById("mp4_src").src = 
+"https://green968.github.io/chicken.mp4";
+  document.getElementById("ogg_src").src =
+"https://green968.github.io/chicken.ogg";
+  document.getElementById("myVideo").load();
+}
+</script>
+​
+</body>
+</html>
