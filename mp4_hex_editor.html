@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MP4 Hex Editor & Structure Analyzer</title>
+</head>
+<body>
+
+  <h1>MP4 Hex Editor & Structure Analyzer</h1>
+  <p>Analyze, browse, edit, and reconstruct MP4 files byte-by-byte. Features a live video preview player, interactive MP4 atom parser, and direct side-by-side hex/text editing.</p>
+
+  <!-- MAIN PAGE LAYOUT USING STANDARD HTML TABLES (NO CSS) -->
+  <table border="0" width="100%" cellpadding="10" cellspacing="0">
+    <tr valign="top">
+      
+      <!-- LEFT WORKSPACE: FILE ACTIONS, TOOLS, & HEX EDITOR -->
+      <td width="60%">
+        
+        <!-- FILE LOADING SECTION -->
+        <fieldset>
+          <legend><strong>1. Load MP4 File</strong></legend>
+          <p>Select a local MP4 video or load our rotated sample video:</p>
+          <p>
+            <label for="fileInput">Choose Local File:</label>
+            <input type="file" id="fileInput" accept=".mp4,video/mp4">
+          </p>
+          <p>
+            <button id="loadSampleBtn">Load Sample Input (rotated.mp4)</button>
+          </p>
+          <p>
+            <strong>Status:</strong> <span id="status">No file loaded yet. Ready.</span>
+          </p>
+        </fieldset>
+
+        <br>
+
+        <!-- QUICK META TOOLS SECTION -->
+        <fieldset id="toolsSection" style="display:none;">
+          <legend><strong>2. MP4 Quick Analysis Tools</strong></legend>
+          <p>Use these quick actions to inspect and adjust video track orientations:</p>
+          <table border="1" cellpadding="6" cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                <th>Tool Action</th>
+                <th>Description / Analysis</th>
+                <th>Trigger</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Inspect Video Rotation Matrix</strong></td>
+                <td>Scans track headers (<code>tkhd</code>) and reports embedded rotation angles.</td>
+                <td><button id="inspectRotationBtn">Analyze Rotation Matrix</button></td>
+              </tr>
+              <tr>
+                <td><strong>Reset Rotation Matrix</strong></td>
+                <td>Clears rotation transformations back to 0° normal landscape orientation.</td>
+                <td><button id="clearRotationBtn">Reset Matrix to 0° (Identity)</button></td>
+              </tr>
+              <tr>
+                <td><strong>Locate Custom Hex Pattern</strong></td>
+                <td>
+                  Search the binary array for specific hex matches. <br>
+                  <input type="text" id="hexSearchPattern" placeholder="e.g., 6d6f6f76" size="15"> 
+                  (e.g., <code>6d6f6f76</code> is <code>moov</code>)
+                </td>
+                <td><button id="searchHexBtn">Find Hex</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div id="toolResultsPanel"></div>
+        </fieldset>
+
+        <br>
+
+        <!-- HEX EDITOR SECTION -->
+        <fieldset id="hexEditorSection" style="display:none;">
+          <legend><strong>3. Binary Hex & Text Grid Editor</strong></legend>
+          
+          <p><strong>Navigation & Settings:</strong></p>
+          <p>
+            Offset View: <span id="currentOffsetLabel">0x00000000 (0)</span> / Total Size: <span id="totalSizeLabel">0 bytes</span>
+          </p>
+          
+          <table border="0" cellpadding="4" cellspacing="0">
+            <tr>
+              <td>
+                <button id="firstPageBtn">|&lt; First</button>
+                <button id="prevPageBtn">&lt;&lt; Prev</button>
+                <button id="nextPageBtn">Next &gt;&gt;</button>
+                <button id="lastPageBtn">Last &gt;|</button>
+              </td>
+              <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+              <td>
+                <label for="pageSizeSelect">Bytes per Page:</label>
+                <select id="pageSizeSelect">
+                  <option value="64">64</option>
+                  <option value="128" selected>128</option>
+                  <option value="256">256</option>
+                  <option value="512">512</option>
+                </select>
+              </td>
+            </tr>
+          </table>
+
+          <p>
+            <label for="jumpToOffsetInput">Jump to Offset (Hex or Decimal):</label>
+            <input type="text" id="jumpToOffsetInput" placeholder="e.g., 0x1A0 or 416" size="12">
+            <button id="jumpToOffsetBtn">Go</button>
+          </p>
+          
+          <hr>
+          
+          <p>
+            <em>Tip: Edit values below! You can change the <strong>Hex Bytes</strong> OR edit the <strong>ASCII characters next to them</strong> directly. They sync with each other instantly. Use your arrow keys to move between cells.</em>
+          </p>
+
+          <!-- MAIN GRID WITH DUAL HEX & ASCII COLUMNS -->
+          <table border="1" cellpadding="3" cellspacing="0" id="hexTable" style="font-family: monospace; font-size: 13px;">
+            <thead>
+              <tr id="hexTableHeader">
+                <!-- Dynamically populated to keep Hex & ASCII headers aligned -->
+              </tr>
+            </thead>
+            <tbody id="hexTableBody">
+              <!-- Grid rows inserted here -->
+            </tbody>
+          </table>
+
+          <br>
+          
+          <!-- FILE SAVE & DOWNLOAD -->
+          <fieldset>
+            <legend><strong>Export & Download Work</strong></legend>
+            <p>Save your active binary manipulations into a downloadable MP4 video:</p>
+            <p>
+              <label for="downloadFilename">Output Filename:</label>
+              <input type="text" id="downloadFilename" value="edited_video.mp4" size="25">
+              <button id="downloadFileBtn" style="font-weight: bold;">Download Edited MP4</button>
+            </p>
+          </fieldset>
+
+        </fieldset>
+      </td>
+
+      <!-- RIGHT PANEL: VIDEO PREVIEW PLAYER & ATOM STRUCTURE TREE -->
+      <td width="40%">
+        
+        <!-- VIDEO PREVIEW PLAYER (Output Preview) -->
+        <fieldset id="previewSection" style="display:none;">
+          <legend><strong>4. Live Video Output Preview</strong></legend>
+          <p>This player loads the video directly from your active memory buffer. Tap play to view edits!</p>
+          
+          <video id="videoPreview" controls width="100%" style="background-color: black; max-width: 480px; display: block;">
+            Your browser does not support HTML5 video previewing.
+          </video>
+          
+          <p>
+            <button id="updatePreviewBtn" style="font-weight: bold; padding: 6px 12px; margin-top: 8px;">🔄 Sync & Reload Video Preview</button>
+          </p>
+          <p><small>Note: Click this button to refresh the video stream immediately after making edits or changing rotation properties.</small></p>
+        </fieldset>
+
+        <br>
+
+        <!-- MP4 ATOM STRUCTURE TREE -->
+        <fieldset id="atomSection" style="display:none;">
+          <legend><strong>5. MP4 Atom / Box Tree Structure</strong></legend>
+          <p>Click "Jump to Hex" on any parsed MP4 box header to instantly navigate the hex editor to that exact binary location:</p>
+          <div id="atomTreeContainer">
+            <em>No parsed box structure available.</em>
+          </div>
+        </fieldset>
+      </td>
+
+    </tr>
+  </table>
+
+  <script>
+    // --- GLOBAL STATE ---
+    let fileBuffer = null;      // ArrayBuffer holding loaded data
+    let fileData = null;        // Uint8Array representation for direct mutations
+    let currentOffset = 0;      // Current page offset in the hex editor
+    let parsedBoxes = [];       // Cache of parsed MP4 boxes
+
+    // --- HTML ELEMENTS ---
+    const fileInput = document.getElementById('fileInput');
+    const loadSampleBtn = document.getElementById('loadSampleBtn');
+    const status = document.getElementById('status');
+    const toolsSection = document.getElementById('toolsSection');
+    const atomSection = document.getElementById('atomSection');
+    const hexEditorSection = document.getElementById('hexEditorSection');
+    const atomTreeContainer = document.getElementById('atomTreeContainer');
+    
+    // Video Output Preview Elements
+    const previewSection = document.getElementById('previewSection');
+    const videoPreview = document.getElementById('videoPreview');
+    const updatePreviewBtn = document.getElementById('updatePreviewBtn');
+
+    // Quick Meta Tools
+    const inspectRotationBtn = document.getElementById('inspectRotationBtn');
+    const clearRotationBtn = document.getElementById('clearRotationBtn');
+    const hexSearchPattern = document.getElementById('hexSearchPattern');
+    const searchHexBtn = document.getElementById('searchHexBtn');
+    const toolResultsPanel = document.getElementById('toolResultsPanel');
+
+    // Hex Navigation
+    const currentOffsetLabel = document.getElementById('currentOffsetLabel');
+    const totalSizeLabel = document.getElementById('totalSizeLabel');
+    const firstPageBtn = document.getElementById('firstPageBtn');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+    const lastPageBtn = document.getElementById('lastPageBtn');
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    const jumpToOffsetInput = document.getElementById('jumpToOffsetInput');
+    const jumpToOffsetBtn = document.getElementById('jumpToOffsetBtn');
+    const hexTable = document.getElementById('hexTable');
+    const hexTableHeader = document.getElementById('hexTableHeader');
+    const hexTableBody = document.getElementById('hexTableBody');
+    const downloadFilename = document.getElementById('downloadFilename');
+    const downloadFileBtn = document.getElementById('downloadFileBtn');
+
+    // --- PAGE SIZE CONFIG ---
+    let bytesPerPage = parseInt(pageSizeSelect.value, 10);
+    const bytesPerRow = 8; // Restructured to 8 columns so Hex & ASCII fit beautifully next to each other!
+
+    pageSizeSelect.addEventListener('change', () => {
+      bytesPerPage = parseInt(pageSizeSelect.value, 10);
+      clampAndRender();
+    });
+
+    // --- INIT EVENT LISTENERS ---
+    fileInput.addEventListener('change', handleFileSelect);
+    loadSampleBtn.addEventListener('click', loadSampleInput);
+    
+    firstPageBtn.addEventListener('click', () => { currentOffset = 0; clampAndRender(); });
+    prevPageBtn.addEventListener('click', () => { currentOffset -= bytesPerPage; clampAndRender(); });
+    nextPageBtn.addEventListener('click', () => { currentOffset += bytesPerPage; clampAndRender(); });
+    lastPageBtn.addEventListener('click', () => { 
+      currentOffset = Math.floor((fileData.length - 1) / bytesPerPage) * bytesPerPage; 
+      clampAndRender(); 
+    });
+
+    jumpToOffsetBtn.addEventListener('click', () => {
+      const val = jumpToOffsetInput.value.trim();
+      if (!val) return;
+      let targetOffset = 0;
+      if (val.toLowerCase().startsWith('0x')) {
+        targetOffset = parseInt(val.slice(2), 16);
+      } else {
+        targetOffset = parseInt(val, 10);
+      }
+      if (isNaN(targetOffset) || targetOffset < 0 || targetOffset >= fileData.length) {
+        alert("Invalid target offset. Must be between 0 and " + (fileData.length - 1));
+        return;
+      }
+      jumpToOffset(targetOffset);
+    });
+
+    inspectRotationBtn.addEventListener('click', inspectRotation);
+    clearRotationBtn.addEventListener('click', clearRotation);
+    searchHexBtn.addEventListener('click', searchHexPatternInFile);
+    downloadFileBtn.addEventListener('click', downloadEditedFile);
+    updatePreviewBtn.addEventListener('click', reloadVideoPreview);
+
+    // --- FILE LOADING LOGIC ---
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      status.textContent = `Reading ${file.name}...`;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        setupFileBuffer(evt.target.result, file.name);
+      };
+      reader.onerror = function() {
+        status.textContent = "Error reading file from disk.";
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    async function loadSampleInput() {
+      const sampleUrl = 'https://quicktime211.github.io/rotated.mp4';
+      status.textContent = `Attempting to fetch remote sample MP4: ${sampleUrl}...`;
+      
+      try {
+        const response = await fetch(sampleUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP status error: ${response.status}`);
+        }
+        const buffer = await response.arrayBuffer();
+        setupFileBuffer(buffer, 'rotated.mp4');
+      } catch (err) {
+        console.error(err);
+        status.innerHTML = `<strong>Error Loading Sample:</strong> Failed to fetch sample file due to network restrictions or CORS policy.<br>
+        <span style="color:red;">Please download the file directly from: <a href="${sampleUrl}" target="_blank">${sampleUrl}</a> and select it via "Choose Local File".</span>`;
+      }
+    }
+
+    function setupFileBuffer(buffer, filename) {
+      fileBuffer = buffer;
+      fileData = new Uint8Array(buffer);
+      currentOffset = 0;
+      downloadFilename.value = filename.endsWith('.mp4') ? `edited_${filename}` : `${filename}_edited.mp4`;
+      
+      status.textContent = `Successfully loaded "${filename}" (${fileData.length.toLocaleString()} bytes).`;
+      
+      // Open panels
+      toolsSection.style.display = 'block';
+      atomSection.style.display = 'block';
+      hexEditorSection.style.display = 'block';
+      previewSection.style.display = 'block';
+      toolResultsPanel.innerHTML = ''; 
+
+      // Process and Parse MP4 structure
+      parseMp4Structure();
+
+      // Load Video Player
+      reloadVideoPreview();
+
+      // Render Layout
+      clampAndRender();
+    }
+
+    // --- VIDEO PLAYER SYNC LOGIC ---
+    function reloadVideoPreview() {
+      if (!fileData) return;
+      status.textContent = "Updating video player preview stream...";
+      
+      try {
+        // Clean up previous blob source to save memory
+        if (videoPreview.src) {
+          URL.revokeObjectURL(videoPreview.src);
+        }
+        
+        const blob = new Blob([fileData], { type: 'video/mp4' });
+        const videoUrl = URL.createObjectURL(blob);
+        videoPreview.src = videoUrl;
+        videoPreview.load();
+        
+        status.textContent = "Video output preview refreshed with latest binary edits.";
+      } catch (err) {
+        console.error("Error creating video blob preview: ", err);
+        status.textContent = "Failed to load/refresh live video preview.";
+      }
+    }
+
+    // --- MP4 BOX/ATOM PARSING LOGIC ---
+    function parseMp4Structure() {
+      atomTreeContainer.innerHTML = '<em>Parsing MP4 atoms, please wait...</em>';
+      try {
+        parsedBoxes = parseBoxes(fileBuffer, 0, fileData.length);
+        renderBoxTree(parsedBoxes, atomTreeContainer);
+      } catch (err) {
+        console.error(err);
+        atomTreeContainer.innerHTML = `<span style="color:red;">Failed to fully parse MP4 Box Structure: ${err.message}</span>`;
+      }
+    }
+
+    function parseBoxes(buffer, start, end) {
+      const view = new DataView(buffer);
+      const boxes = [];
+      let offset = start;
+
+      while (offset < end) {
+        if (offset + 8 > end) {
+          break; // Incomplete box header bounds
+        }
+
+        let size = view.getUint32(offset);
+        const typeBytes = new Uint8Array(buffer, offset + 4, 4);
+        let type = '';
+        for (let i = 0; i < 4; i++) {
+          const charCode = typeBytes[i];
+          if (charCode >= 32 && charCode <= 126) {
+            type += String.fromCharCode(charCode);
+          } else {
+            type += '\\x' + charCode.toString(16).padStart(2, '0');
+          }
+        }
+
+        let headerSize = 8;
+        if (size === 1) {
+          if (offset + 16 > end) break;
+          const high = view.getUint32(offset + 8);
+          const low = view.getUint32(offset + 12);
+          size = high * 0x100000000 + low; 
+          headerSize = 16;
+        } else if (size === 0) {
+          size = end - offset;
+        }
+
+        if (size < headerSize) {
+          break;
+        }
+
+        const box = {
+          type: type,
+          offset: offset,
+          size: size,
+          headerSize: headerSize,
+          children: []
+        };
+
+        const containerTypes = ['moov', 'trak', 'mdia', 'minf', 'stbl', 'udta', 'edts', 'dinf', 'mvex', 'moof', 'traf', 'mfra'];
+        if (containerTypes.includes(type)) {
+          const innerStart = offset + headerSize;
+          const innerEnd = Math.min(offset + size, end);
+          box.children = parseBoxes(buffer, innerStart, innerEnd);
+        }
+
+        boxes.push(box);
+        offset += size;
+      }
+
+      return boxes;
+    }
+
+    function renderBoxTree(boxes, container) {
+      container.innerHTML = '';
+      if (boxes.length === 0) {
+        container.textContent = 'No boxes detected.';
+        return;
+      }
+
+      const list = document.createElement('ul');
+      list.style.listStyleType = "none";
+      list.style.paddingLeft = "15px";
+
+      boxes.forEach(box => {
+        const item = document.createElement('li');
+        item.style.margin = "4px 0";
+
+        const navBtn = document.createElement('button');
+        navBtn.textContent = "Jump to Hex";
+        navBtn.style.fontSize = "0.85em";
+        navBtn.style.padding = "2px 5px";
+        navBtn.onclick = () => jumpToOffset(box.offset);
+
+        if (box.children && box.children.length > 0) {
+          const details = document.createElement('details');
+          details.open = (box.type === 'moov' || box.type === 'trak'); 
+          
+          const summary = document.createElement('summary');
+          summary.innerHTML = `⚙️ <strong>${escapeHtml(box.type)}</strong> (${box.size} B) `;
+          summary.appendChild(navBtn);
+          
+          details.appendChild(summary);
+          
+          const childContainer = document.createElement('div');
+          renderBoxTree(box.children, childContainer);
+          details.appendChild(childContainer);
+          item.appendChild(details);
+        } else {
+          item.innerHTML = `📄 <strong>${escapeHtml(box.type)}</strong> (${box.size} B) `;
+          item.appendChild(navBtn);
+        }
+
+        list.appendChild(item);
+      });
+
+      container.appendChild(list);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // --- NAVIGATION HELPERS ---
+    function jumpToOffset(targetOffset) {
+      if (targetOffset < 0 || targetOffset >= fileData.length) return;
+      currentOffset = Math.floor(targetOffset / bytesPerPage) * bytesPerPage;
+      clampAndRender();
+      
+      setTimeout(() => {
+        const targetInput = document.getElementById(`hex-input-${targetOffset}`);
+        if (targetInput) {
+          targetInput.focus();
+          targetInput.select();
+          targetInput.style.backgroundColor = '#ffeb3b';
+          setTimeout(() => {
+            targetInput.style.backgroundColor = '';
+          }, 1500);
+        }
+      }, 50);
+    }
+
+    function clampAndRender() {
+      if (!fileData) return;
+      if (currentOffset < 0) currentOffset = 0;
+      const maxOffset = Math.floor((fileData.length - 1) / bytesPerPage) * bytesPerPage;
+      if (currentOffset > maxOffset) currentOffset = maxOffset;
+
+      currentOffsetLabel.textContent = `0x${currentOffset.toString(16).toUpperCase().padStart(8, '0')} (${currentOffset.toLocaleString()})`;
+      totalSizeLabel.textContent = `${fileData.length.toLocaleString()} bytes`;
+
+      renderHexGrid();
+    }
+
+    // --- TWO-WAY HEX & ASCII GRID RENDERING ENGINE ---
+    function renderHexGrid() {
+      // 1. Setup aligned dual table headers (Hex Columns and text column side-by-side)
+      hexTableHeader.innerHTML = '<th>Offset</th>';
+      
+      // Hex headers
+      for (let i = 0; i < bytesPerRow; i++) {
+        const th = document.createElement('th');
+        th.textContent = `H ${i.toString(16).toUpperCase()}`;
+        hexTableHeader.appendChild(th);
+      }
+      
+      // Separator column
+      const spacerTh = document.createElement('th');
+      spacerTh.textContent = '➔';
+      hexTableHeader.appendChild(spacerTh);
+
+      // ASCII Text headers matching individual columns
+      for (let i = 0; i < bytesPerRow; i++) {
+        const th = document.createElement('th');
+        th.textContent = `Text ${i.toString(16).toUpperCase()}`;
+        hexTableHeader.appendChild(th);
+      }
+
+      // 2. Populate table rows
+      hexTableBody.innerHTML = '';
+      const pageEnd = Math.min(currentOffset + bytesPerPage, fileData.length);
+
+      for (let rowStart = currentOffset; rowStart < pageEnd; rowStart += bytesPerRow) {
+        const tr = document.createElement('tr');
+
+        // Column A: Address Identifier
+        const tdOffset = document.createElement('td');
+        tdOffset.style.fontWeight = 'bold';
+        tdOffset.textContent = `0x${rowStart.toString(16).toUpperCase().padStart(8, '0')}`;
+        tr.appendChild(tdOffset);
+
+        // Column B: Hex Byte Inputs
+        for (let col = 0; col < bytesPerRow; col++) {
+          const globalIndex = rowStart + col;
+          const tdByte = document.createElement('td');
+          tdByte.align = 'center';
+
+          if (globalIndex < fileData.length) {
+            const byteVal = fileData[globalIndex];
+            const hexString = byteVal.toString(16).toUpperCase().padStart(2, '0');
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = hexString;
+            input.maxLength = 2;
+            input.id = `hex-input-${globalIndex}`;
+            input.style.width = '3.5ch';
+            input.style.textAlign = 'center';
+            input.style.fontFamily = 'monospace';
+            input.style.fontSize = '13px';
+            
+            // Sync Input modification (Hex -> ASCII representation)
+            input.addEventListener('input', (e) => {
+              let val = e.target.value.replace(/[^0-9a-fA-F]/g, '');
+              e.target.value = val;
+              if (val.length === 2) {
+                const parsedByte = parseInt(val, 16);
+                fileData[globalIndex] = parsedByte;
+                
+                // Update corresponding side-by-side Text input
+                const textInput = document.getElementById(`text-input-${globalIndex}`);
+                if (textInput) {
+                  textInput.value = getAsciiCharRepresentation(parsedByte);
+                }
+                
+                // Auto-advance to the next hex input
+                const nextInput = document.getElementById(`hex-input-${globalIndex + 1}`);
+                if (nextInput) {
+                  nextInput.focus();
+                  nextInput.select();
+                }
+              }
+            });
+
+            input.addEventListener('keydown', (e) => {
+              handleGridArrowNavigation(e, globalIndex, 'hex');
+            });
+
+            tdByte.appendChild(input);
+          } else {
+            tdByte.textContent = '--';
+            tdByte.style.color = '#ccc';
+          }
+          tr.appendChild(tdByte);
+        }
+
+        // Column C: Spacer column
+        const tdSpacer = document.createElement('td');
+        tdSpacer.textContent = '|';
+        tdSpacer.style.color = '#ccc';
+        tdSpacer.align = 'center';
+        tr.appendChild(tdSpacer);
+
+        // Column D: Aligned Side-by-Side ASCII Text Inputs
+        for (let col = 0; col < bytesPerRow; col++) {
+          const globalIndex = rowStart + col;
+          const tdText = document.createElement('td');
+          tdText.align = 'center';
+
+          if (globalIndex < fileData.length) {
+            const byteVal = fileData[globalIndex];
+            const charStr = getAsciiCharRepresentation(byteVal);
+
+            const textInput = document.createElement('input');
+            textInput.type = 'text';
+            textInput.value = charStr;
+            textInput.maxLength = 1;
+            textInput.id = `text-input-${globalIndex}`;
+            textInput.style.width = '2ch';
+            textInput.style.textAlign = 'center';
+            textInput.style.fontFamily = 'monospace';
+            textInput.style.fontSize = '13px';
+            textInput.style.backgroundColor = '#fdfdfd';
+
+            // Sync text modification (ASCII Text -> Hex byte)
+            textInput.addEventListener('input', (e) => {
+              const val = e.target.value;
+              if (val.length === 1) {
+                const asciiValue = val.charCodeAt(0);
+                fileData[globalIndex] = asciiValue;
+
+                // Update corresponding hex byte cell next to it
+                const hexInput = document.getElementById(`hex-input-${globalIndex}`);
+                if (hexInput) {
+                  hexInput.value = asciiValue.toString(16).toUpperCase().padStart(2, '0');
+                }
+
+                // Auto-advance text cursor
+                const nextText = document.getElementById(`text-input-${globalIndex + 1}`);
+                if (nextText) {
+                  nextText.focus();
+                  nextText.select();
+                }
+              }
+            });
+
+            textInput.addEventListener('keydown', (e) => {
+              handleGridArrowNavigation(e, globalIndex, 'text');
+            });
+
+            tdText.appendChild(textInput);
+          } else {
+            tdText.textContent = ' ';
+          }
+          tr.appendChild(tdText);
+        }
+
+        hexTableBody.appendChild(tr);
+      }
+    }
+
+    function getAsciiCharRepresentation(byteVal) {
+      if (byteVal >= 32 && byteVal <= 126) {
+        return String.fromCharCode(byteVal);
+      }
+      return '·'; // Dot representing non-printable byte
+    }
+
+    // Unified keypad movement
+    function handleGridArrowNavigation(e, index, mode) {
+      let targetId = null;
+      switch (e.key) {
+        case 'ArrowLeft':
+          if (e.target.selectionStart === 0) {
+            targetId = `${mode}-input-${index - 1}`;
+          }
+          break;
+        case 'ArrowRight':
+          if (e.target.selectionEnd === e.target.value.length || e.target.value.length === 0) {
+            targetId = `${mode}-input-${index + 1}`;
+          }
+          break;
+        case 'ArrowUp':
+          targetId = `${mode}-input-${index - bytesPerRow}`;
+          break;
+        case 'ArrowDown':
+          targetId = `${mode}-input-${index + bytesPerRow}`;
+          break;
+        case 'Backspace':
+          if (e.target.value.length === 0) {
+            targetId = `${mode}-input-${index - 1}`;
+          }
+          break;
+      }
+
+      if (targetId) {
+        const nextInput = document.getElementById(targetId);
+        if (nextInput) {
+          e.preventDefault();
+          nextInput.focus();
+          nextInput.select();
+        }
+      }
+    }
+
+    // --- QUICK MP4 ACTION LOGIC ---
+    
+    function searchHexPatternInFile() {
+      const hexStr = hexSearchPattern.value.replace(/[^0-9a-fA-F]/g, '');
+      if (!hexStr || hexStr.length % 2 !== 0) {
+        toolResultsPanel.innerHTML = '<span style="color:red;">Error: Enter an even-length Hex string (e.g., 6d6f6f76).</span>';
+        return;
+      }
+      
+      const pattern = [];
+      for (let i = 0; i < hexStr.length; i += 2) {
+        pattern.push(parseInt(hexStr.substr(i, 2), 16));
+      }
+
+      toolResultsPanel.innerHTML = 'Searching file...';
+
+      const results = [];
+      const len = fileData.length - pattern.length;
+      for (let i = 0; i <= len; i++) {
+        let match = true;
+        for (let j = 0; j < pattern.length; j++) {
+          if (fileData[i + j] !== pattern[j]) {
+            match = false;
+            break;
+          }
+        }
+        if (match) {
+          results.push(i);
+          if (results.length >= 100) break; 
+        }
+      }
+
+      if (results.length === 0) {
+        toolResultsPanel.innerHTML = '<p>⚠️ <strong>No matching binary sequences found.</strong></p>';
+      } else {
+        let outHtml = `<p><strong>Found ${results.length} matches:</strong></p><ul>`;
+        results.forEach(addr => {
+          outHtml += `<li>Offset <code>${addr}</code> (<code>0x${addr.toString(16).toUpperCase()}</code>) - <button onclick="jumpToOffset(${addr})">Inspect</button></li>`;
+        });
+        outHtml += '</ul>';
+        toolResultsPanel.innerHTML = outHtml;
+      }
+    }
+
+    function inspectRotation() {
+      if (!fileBuffer) return;
+      
+      const foundTkhdAtoms = [];
+      function collectBoxes(boxes) {
+        boxes.forEach(box => {
+          if (box.type === 'tkhd') {
+            foundTkhdAtoms.push(box);
+          }
+          if (box.children && box.children.length > 0) {
+            collectBoxes(box.children);
+          }
+        });
+      }
+      collectBoxes(parsedBoxes);
+
+      if (foundTkhdAtoms.length === 0) {
+        toolResultsPanel.innerHTML = '<p style="color:orange;">Could not locate track header (<code>tkhd</code>) atoms automatically.</p>';
+        return;
+      }
+
+      let analysisHtml = '<h3>tkhd (Track Header) Orientation Status:</h3>';
+      
+      foundTkhdAtoms.forEach((atom, trackIndex) => {
+        const view = new DataView(fileBuffer);
+        const version = view.getUint8(atom.offset + atom.headerSize);
+        
+        let matrixStartOffset = atom.offset + atom.headerSize;
+        if (version === 1) {
+          matrixStartOffset += 4 + 8 + 8 + 4 + 4 + 8 + 8 + 2 + 2 + 2 + 2; 
+        } else {
+          matrixStartOffset += 4 + 4 + 4 + 4 + 4 + 4 + 4 + 8 + 2 + 2 + 2 + 2;
+        }
+
+        const a = view.getInt32(matrixStartOffset);
+        const b = view.getInt32(matrixStartOffset + 4);
+        const u = view.getInt32(matrixStartOffset + 8);
+        const c = view.getInt32(matrixStartOffset + 12);
+        const d = view.getInt32(matrixStartOffset + 16);
+        const v = view.getInt32(matrixStartOffset + 20);
+        const x = view.getInt32(matrixStartOffset + 24);
+        const y = view.getInt32(matrixStartOffset + 28);
+        const w = view.getInt32(matrixStartOffset + 32);
+
+        const normA = (a / 65536);
+        const normB = (b / 65536);
+        const normC = (c / 65536);
+        const normD = (d / 65536);
+
+        let rotString = "0° (Identity)";
+        if (normA === 0 && normB === 1 && normC === -1 && normD === 0) {
+          rotString = "90° Counter-Clockwise (270° Clockwise)";
+        } else if (normA === 0 && normB === -1 && normC === 1 && normD === 0) {
+          rotString = "90° Clockwise (standard portrait orientation)";
+        } else if (normA === -1 && normB === 0 && normC === 0 && normD === -1) {
+          rotString = "180° Rotate Upside Down";
+        }
+
+        analysisHtml += `
+          <div style="border:1px solid #ccc; margin-bottom: 10px; padding: 10px;">
+            <p><strong>Track Section #${trackIndex + 1}</strong> (Offset: <code>${atom.offset}</code>):</p>
+            <ul>
+              <li>Detected Rotation: <strong>${rotString}</strong></li>
+              <li>Matrix State:
+                <pre>
+|  ${normA.toFixed(2)}  ${normB.toFixed(2)}  ${(u/1073741824).toFixed(2)} |
+|  ${normC.toFixed(2)}  ${normD.toFixed(2)}  ${(v/1073741824).toFixed(2)} |
+|  ${(x/65536).toFixed(2)}  ${(y/65536).toFixed(2)}  ${(w/1073741824).toFixed(2)} |</pre>
+              </li>
+            </ul>
+            <button onclick="jumpToOffset(${matrixStartOffset})">Focus Matrix in Grid</button>
+          </div>
+        `;
+      });
+
+      toolResultsPanel.innerHTML = analysisHtml;
+    }
+
+    function clearRotation() {
+      if (!fileBuffer) return;
+
+      const foundTkhdAtoms = [];
+      function collectBoxes(boxes) {
+        boxes.forEach(box => {
+          if (box.type === 'tkhd') {
+            foundTkhdAtoms.push(box);
+          }
+          if (box.children && box.children.length > 0) {
+            collectBoxes(box.children);
+          }
+        });
+      }
+      collectBoxes(parsedBoxes);
+
+      if (foundTkhdAtoms.length === 0) {
+        toolResultsPanel.innerHTML = '<p style="color:red;">Error: No track headers available to alter rotation.</p>';
+        return;
+      }
+
+      let mutatedCount = 0;
+      foundTkhdAtoms.forEach(atom => {
+        const view = new DataView(fileBuffer);
+        const version = view.getUint8(atom.offset + atom.headerSize);
+        
+        let matrixStartOffset = atom.offset + atom.headerSize;
+        if (version === 1) {
+          matrixStartOffset += 4 + 8 + 8 + 4 + 4 + 8 + 8 + 2 + 2 + 2 + 2; 
+        } else {
+          matrixStartOffset += 4 + 4 + 4 + 4 + 4 + 4 + 4 + 8 + 2 + 2 + 2 + 2;
+        }
+
+        // Set identity values:
+        view.setInt32(matrixStartOffset, 0x00010000);      // a (1.0)
+        view.setInt32(matrixStartOffset + 4, 0);           // b (0.0)
+        view.setInt32(matrixStartOffset + 8, 0);           // u (0.0)
+        view.setInt32(matrixStartOffset + 12, 0);          // c (0.0)
+        view.setInt32(matrixStartOffset + 16, 0x00010000);  // d (1.0)
+        view.setInt32(matrixStartOffset + 20, 0);          // v (0.0)
+        view.setInt32(matrixStartOffset + 24, 0);          // x (0.0)
+        view.setInt32(matrixStartOffset + 28, 0);          // y (0.0)
+        view.setInt32(matrixStartOffset + 32, 0x40000000);  // w (1.0 in 2.30 format)
+
+        mutatedCount++;
+      });
+
+      // Synchronize changes to active fileData representation
+      fileData = new Uint8Array(fileBuffer);
+
+      // Re-render Hex view and re-evaluate track metrics
+      clampAndRender();
+      inspectRotation();
+      
+      // Sync to video preview
+      reloadVideoPreview();
+      
+      toolResultsPanel.innerHTML += `<p style="color:green; font-weight:bold;">Successfully reset rotation matrix values! Video Output player has been auto-reloaded.</p>`;
+    }
+
+    // --- DOWNLOAD EXPORTER ENGINE ---
+    function downloadEditedFile() {
+      if (!fileData) return;
+      
+      try {
+        const outBlob = new Blob([fileData], { type: 'video/mp4' });
+        const downloadUrl = URL.createObjectURL(outBlob);
+        
+        const testAnchor = document.createElement('a');
+        testAnchor.href = downloadUrl;
+        testAnchor.download = downloadFilename.value || 'edited_video.mp4';
+        document.body.appendChild(testAnchor);
+        testAnchor.click();
+        
+        document.body.removeChild(testAnchor);
+        URL.revokeObjectURL(downloadUrl);
+        status.textContent = "Binary package exported & downloaded successfully.";
+      } catch (err) {
+        alert("Failed to export binary file: " + err.message);
+      }
+    }
+  </script>
+
+</body>
+</html>
