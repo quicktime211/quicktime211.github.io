@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Algorithm Visualizer & Recorder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&family=JetBrains+Mono:wght=400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f3f4f6;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col">
+
+    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-tr from-violet-600 to-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/20">
+                <i class="fa-solid fa-chart-bar text-xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">ALGO-VISION PRO</h1>
+                <p class="text-xs text-slate-400 font-medium tracking-wider">19-SORT ENGINE, MEDIA UPLOADER & RECORDER</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-6 bg-slate-900/50 border border-slate-800/80 rounded-xl px-4 py-2 text-xs font-mono">
+            <div class="flex flex-col">
+                <span class="text-slate-500">COMPARISONS</span>
+                <span id="stat-comparisons" class="text-indigo-400 font-bold text-sm">0</span>
+            </div>
+            <div class="h-6 w-px bg-slate-800"></div>
+            <div class="flex flex-col">
+                <span class="text-slate-500">SWAPS/WRITES</span>
+                <span id="stat-swaps" class="text-emerald-400 font-bold text-sm">0</span>
+            </div>
+            <div class="h-6 w-px bg-slate-800"></div>
+            <div class="flex flex-col">
+                <span class="text-slate-500">TIME ELAPSED</span>
+                <span id="stat-time" class="text-amber-400 font-bold text-sm">0.00s</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-[1800px] w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <div class="lg:col-span-1 flex flex-col gap-5">
+            
+            <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+                <h2 class="text-sm font-semibold tracking-wide text-slate-300 uppercase mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-500"></i> Generator Settings
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Select Algorithm (19 options)</label>
+                        <select id="algo-select" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium font-sans">
+                            <optgroup label="Simple / Quadratic Sorts">
+                                <option value="bubble" selected>Bubble Sort</option>
+                                <option value="selection">Selection Sort</option>
+                                <option value="insertion">Insertion Sort</option>
+                                <option value="cocktail">Cocktail Shaker Sort</option>
+                                <option value="gnome">Gnome Sort</option>
+                                <option value="oddeven">Odd-Even Sort</option>
+                            </optgroup>
+                            <optgroup label="Efficient Sorts">
+                                <option value="quick">Quick Sort (Lomuto)</option>
+                                <option value="merge">Merge Sort</option>
+                                <option value="heap">Heap Sort</option>
+                                <option value="shell">Shell Sort</option>
+                                <option value="comb">Comb Sort</option>
+                                <option value="bitonic">Bitonic Sort</option>
+                                <option value="timsort">Tim Sort</option>
+                            </optgroup>
+                            <optgroup label="Distribution / Index Sorts">
+                                <option value="radix">Radix Sort (LSD Base 10)</option>
+                                <option value="counting">Counting Sort</option>
+                            </optgroup>
+                            <optgroup label="Specialty / Exotic Sorts">
+                                <option value="cycle">Cycle Sort</option>
+                                <option value="pancake">Pancake Sort</option>
+                                <option value="stooge">Stooge Sort (Very Slow!)</option>
+                                <option value="bogo">Bogo Sort (Luck Based!)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Aspect Ratio Preset</label>
+                        <select id="aspect-ratio-select" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium font-sans">
+                            <option value="16:9" selected>Cinema Widescreen (16:9)</option>
+                            <option value="4:3">Classic CRT / SD (4:3)</option>
+                            <option value="1:1">Square Grid (1:1)</option>
+                            <option value="21:9">Ultra-Wide Cinematic (21:9)</option>
+                            <option value="custom">Custom Canvas Dimensions</option>
+                        </select>
+                    </div>
+
+                    <div id="quality-preset-wrapper">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Quality Preset</label>
+                            <span id="quality-badge" class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 font-mono font-semibold">120 elements</span>
+                        </div>
+                        <select id="quality-select" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium font-sans">
+                            <option value="144p">144p Super Low (25 elements)</option>
+                            <option value="240p">240p Low (50 elements)</option>
+                            <option value="360p" selected>360p Standard (120 elements)</option>
+                            <option value="480p">480p High (200 elements)</option>
+                            <option value="720p">720p HD (400 elements)</option>
+                            <option value="1080p">1080p Full HD (750 elements)</option>
+                        </select>
+                    </div>
+
+                    <div id="custom-resolution-wrapper" class="hidden animate-fadeIn">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Custom Canvas Resolution Typer</label>
+                        <div class="grid grid-cols-2 gap-2 mb-2">
+                            <div>
+                                <span class="text-[10px] text-slate-500 uppercase font-mono block mb-1">Width (px)</span>
+                                <input type="number" id="custom-width-input" min="100" max="3840" value="800" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono">
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-500 uppercase font-mono block mb-1">Height (px)</span>
+                                <input type="number" id="custom-height-input" min="100" max="2160" value="450" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono">
+                            </div>
+                        </div>
+                        <button id="btn-apply-resolution" class="w-full bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-xs font-bold py-2 rounded-xl transition duration-150 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-vector-square"></i> Apply Custom Bounds
+                        </button>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Custom Element Count Typer</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="element-count-input" min="5" max="1000" placeholder="Type a count (5 - 1000)" class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium font-sans">
+                            <button id="btn-apply-count" class="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-xs font-bold px-4 rounded-xl transition duration-150 flex items-center justify-center">
+                                Set
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-1">Overrides preset element count directly while preserving resolution.</p>
+                    </div>
+
+                    <!-- Max Seconds Typer -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Max Sorting Duration (Seconds)</label>
+                        <input type="number" id="max-seconds-input" min="1" max="1000" value="300" placeholder="Seconds (Max 1000)" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium font-sans font-mono">
+                        <p class="text-[10px] text-slate-500 mt-1">Automatically stops sorting if it exceeds this limit (1 - 1000 seconds).</p>
+                    </div>
+
+                    <!-- FPS Selector -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Target Frame Rate (FPS)</label>
+                        <select id="fps-select" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium font-sans">
+                            <option value="12">12 FPS (Cinematic Retro)</option>
+                            <option value="15">15 FPS</option>
+                            <option value="24">24 FPS (Film Look)</option>
+                            <option value="30" selected>30 FPS (Standard Smooth)</option>
+                            <option value="48">48 FPS (High Frame Rate)</option>
+                            <option value="60">60 FPS (Ultra Smooth Pro)</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-900">
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Audio Synthesizer</label>
+                            <button id="btn-toggle-sound" class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-volume-high text-indigo-400" id="sound-icon"></i>
+                                <span id="sound-text">Sound ON</span>
+                            </button>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span>Volume</span>
+                                <span id="volume-label" class="font-mono text-slate-300">50%</span>
+                            </div>
+                            <input type="range" id="volume-slider" min="0" max="100" value="50" class="w-full accent-indigo-500 bg-slate-900 h-1.5 rounded-lg cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-900">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Operation Delay</label>
+                            <span id="delay-label" class="font-mono text-xs text-indigo-400 font-bold">15 ms</span>
+                        </div>
+                        <input type="range" id="delay-slider" min="1" max="1000" value="15" class="w-full accent-indigo-500 bg-slate-900 h-1.5 rounded-lg cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-500 pt-1">
+                            <span>Fast (1ms)</span>
+                            <span>Slow (1000ms)</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Aesthetic Theme</label>
+                        <select id="theme-select" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium font-sans">
+                            <option value="neon">Synthwave Glow (Neon Red/Pink/Blue)</option>
+                            <option value="matrix">Emerald Matrix (Green Cyber)</option>
+                            <option value="aurora">Northern Lights (Aqua/Purple/Cyan)</option>
+                            <option value="rainbow">Chromatic Rainbow (Full HSL Spectrum)</option>
+                            <option value="lava">Volcanic Flow (Warm Red/Orange/Yellow)</option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+                <h2 class="text-sm font-semibold tracking-wide text-slate-300 uppercase mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-photo-film text-purple-500"></i> Media Integration
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Upload Custom Image</label>
+                        <div class="flex items-center gap-3">
+                            <label class="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 hover:border-indigo-500/50 bg-slate-900/40 rounded-xl py-3 cursor-pointer transition">
+                                <i class="fa-solid fa-image text-slate-500 text-lg mb-1"></i>
+                                <span class="text-[11px] text-slate-400 font-medium">Select Image file</span>
+                                <input type="file" id="image-upload" accept="image/*" class="hidden">
+                            </label>
+                            <div id="image-preview-container" class="hidden relative w-12 h-12 bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex-shrink-0">
+                                <img id="image-preview" class="w-full h-full object-cover">
+                                <button id="btn-clear-image" class="absolute -top-1 -right-1 bg-slate-950 text-red-400 hover:text-red-300 text-[10px] p-0.5 rounded-full border border-slate-800 w-4 h-4 flex items-center justify-center">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-1">Splits your image into vertical slices. Sorting them reconstructs the image!</p>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-900">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Upload Custom Audio</label>
+                        <div class="flex items-center gap-2">
+                            <label class="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 hover:border-indigo-500/50 bg-slate-900/40 rounded-xl py-3 cursor-pointer transition">
+                                <i class="fa-solid fa-music text-slate-500 text-lg mb-1"></i>
+                                <span id="audio-upload-status" class="text-[11px] text-slate-400 font-medium">Select Sound track</span>
+                                <input type="file" id="audio-upload" accept="audio/*" class="hidden">
+                            </label>
+                            <button id="btn-clear-audio" class="hidden px-3 py-3 bg-slate-900 text-red-400 hover:text-red-300 border border-slate-800 hover:border-red-500/20 rounded-xl text-xs transition">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-1">Segments your track. Tone generator plays custom scrubs from the loaded file!</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-5 shadow-xl flex flex-col justify-between min-h-[250px]">
+                <div>
+                    <h2 class="text-sm font-semibold tracking-wide text-slate-300 uppercase mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-emerald-500"></i> Algorithm Specs
+                    </h2>
+                    <h3 id="info-name" class="text-lg font-bold text-indigo-400 font-mono mb-2">Bubble Sort</h3>
+                    <p id="info-desc" class="text-xs text-slate-400 leading-relaxed mb-4">
+                        A simple, comparison-based sorting algorithm that repeatedly steps through the list, compares adjacent elements, and swaps them if they are in the wrong order.
+                    </p>
+                </div>
+                
+                <div class="space-y-2 pt-4 border-t border-slate-900 font-mono text-xs">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Best Complexity</span>
+                        <span id="info-best" class="text-emerald-400 font-bold">O(n)</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Avg Complexity</span>
+                        <span id="info-avg" class="text-amber-400 font-bold">O(n²)</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Worst Complexity</span>
+                        <span id="info-worst" class="text-rose-400 font-bold">O(n²)</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Space Complexity</span>
+                        <span id="info-space" class="text-sky-400 font-semibold">O(1)</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Stable Sort</span>
+                        <span id="info-stable" class="text-emerald-400 font-semibold">Yes</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="lg:col-span-3 flex flex-col gap-6">
+            
+            <div class="bg-slate-950 border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl relative flex flex-col">
+                <div class="bg-slate-950 border-b border-slate-900 px-5 py-3.5 flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-xs font-semibold text-slate-400 tracking-wider">LIVE VISUALIZATION CANVAS</span>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        <span id="resolution-badge" class="font-mono text-xs text-slate-400 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">
+                            640 x 360 px
+                        </span>
+                        
+                        <div id="recording-status" class="hidden items-center gap-2 bg-rose-950/50 border border-rose-800 text-rose-300 font-mono text-xs px-3 py-1 rounded-lg">
+                            <span class="w-2 h-2 bg-rose-500 rounded-full animate-ping"></span>
+                            <span>RECORDING: <span id="record-timer">00:00</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 flex justify-center items-center p-4 min-h-[300px] md:min-h-[480px]">
+                    <div id="canvas-aspect-box" class="relative w-full max-h-[500px] rounded-xl bg-slate-950 shadow-inner flex items-center justify-center overflow-hidden transition-all duration-300">
+                        <canvas id="sort-canvas" class="w-full h-full block object-contain"></canvas>
+                        
+                        <div id="canvas-overlay" class="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center gap-2 opacity-0 pointer-events-none transition-all duration-300">
+                            <div class="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-2">
+                                <i class="fa-solid fa-check text-emerald-400 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white tracking-wide">Sorting Completed!</h3>
+                            <p id="overlay-stats" class="text-xs font-mono text-slate-400">Time: 4.21s • Swaps: 320 • Comps: 1,220</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/40 border-t border-slate-900/80 px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <button id="btn-shuffle" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-slate-200 hover:text-white border border-slate-800 rounded-xl text-sm font-semibold flex items-center gap-2 transition duration-200">
+                            <i class="fa-solid fa-shuffle"></i> Shuffle Array
+                        </button>
+                        <button id="btn-start" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-lg shadow-indigo-600/15 transition duration-200">
+                            <i class="fa-solid fa-play"></i> Run Visualizer
+                        </button>
+                        <button id="btn-pause" class="hidden px-5 py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white rounded-xl text-sm font-semibold items-center gap-2 shadow-lg shadow-amber-600/15 transition duration-200">
+                            <i class="fa-solid fa-pause"></i> Pause Sort
+                        </button>
+                        <button id="btn-step" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-xl text-sm font-semibold flex items-center gap-2 transition">
+                            <i class="fa-solid fa-angles-right"></i> Single Step
+                        </button>
+                        <button id="btn-reset" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-xl text-sm font-semibold flex items-center gap-2 transition">
+                            <i class="fa-solid fa-rotate-left"></i> Restore Original
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button id="btn-record" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-rose-600/20 transition duration-200">
+                            <i class="fa-solid fa-video text-rose-100"></i> Record MP4 Video
+                        </button>
+                        <button id="btn-stop-record" class="hidden px-5 py-2.5 bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-800 rounded-xl text-sm font-bold flex items-center gap-2 transition duration-200">
+                            <i class="fa-solid fa-square text-rose-500"></i> Stop & Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-5 shadow-xl">
+                    <h2 class="text-sm font-semibold tracking-wide text-slate-300 uppercase mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-wrench text-amber-500"></i> Custom Arrays & Presets
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Starting Layout</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                <button data-layout="random" class="btn-layout px-3 py-2 text-xs font-semibold border bg-slate-900 border-indigo-500/20 text-indigo-300 rounded-xl hover:bg-slate-800 transition">
+                                    Random Shuffled
+                                </button>
+                                <button data-layout="reversed" class="btn-layout px-3 py-2 text-xs font-semibold border bg-slate-900 border-slate-800 text-slate-400 rounded-xl hover:bg-slate-800 transition">
+                                    Fully Reversed
+                                </button>
+                                <button data-layout="nearly" class="btn-layout px-3 py-2 text-xs font-semibold border bg-slate-900 border-slate-800 text-slate-400 rounded-xl hover:bg-slate-800 transition">
+                                    Nearly Sorted
+                                </button>
+                                <button data-layout="few" class="btn-layout px-3 py-2 text-xs font-semibold border bg-slate-900 border-slate-800 text-slate-400 rounded-xl hover:bg-slate-800 transition">
+                                    Few Unique Values
+                                </button>
+                                <button data-layout="hill" class="btn-layout px-3 py-2 text-xs font-semibold border bg-slate-900 border-slate-800 text-slate-400 rounded-xl hover:bg-slate-800 transition">
+                                    Hill/Valley Shape
+                                </button>
+                                <button data-layout="sorted" class="btn-layout px-3 py-2 text-xs font-semibold border bg-slate-900 border-slate-800 text-slate-400 rounded-xl hover:bg-slate-800 transition">
+                                    Already Sorted
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Interactive Custom Values</label>
+                                <span class="text-[10px] text-slate-500">Comma-separated integers (10-100)</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" id="custom-array-input" placeholder="e.g. 50, 12, 85, 33, 40, 95, 20" class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <button id="btn-apply-custom" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 py-2 rounded-xl transition">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 border border-slate-800/80 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-sm font-semibold tracking-wide text-slate-300 uppercase mb-3 flex items-center justify-between">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-terminal text-indigo-500"></i> Operation Log</span>
+                            <button id="btn-clear-logs" class="text-[10px] text-slate-500 hover:text-slate-300 font-mono">CLEAR</button>
+                        </h2>
+                        <div id="console" class="bg-slate-900/60 border border-slate-900 rounded-xl p-3 h-32 overflow-y-auto font-mono text-[11px] text-slate-300 space-y-1.5 scroll-smooth">
+                            <div class="text-slate-500">[System] Visualizer Engine initialized successfully.</div>
+                            <div class="text-slate-500">[System] Selected Bubble Sort on 360p (120 values).</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-3 border-t border-slate-900/60 flex justify-between items-center text-xs text-slate-500 font-mono">
+                        <span>Audio Engine: <strong class="text-slate-300" id="audio-status-indicator">STANDBY</strong></span>
+                        <span>Video Format: <strong class="text-slate-300" id="video-format-indicator">MP4 (WebM Container)</strong></span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
+
+    <div id="record-export-modal" class="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center gap-4 hidden">
+        <div class="relative w-20 h-20 flex items-center justify-center">
+            <div class="absolute inset-0 border-4 border-slate-800 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            <i class="fa-solid fa-file-video text-indigo-400 text-2xl"></i>
+        </div>
+        <div class="text-center">
+            <h3 class="text-lg font-bold text-white mb-1">Processing Recording</h3>
+            <p class="text-xs text-slate-400 max-w-xs leading-relaxed">
+                We are packing the synthesized Web Audio track and visual frames into a high-quality video file. This will automatically download once complete...
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURATION & STATE ---
+        const ALGORITHMS = {
+            bubble: {
+                name: "Bubble Sort",
+                desc: "A simple, quadratic algorithm that repeatedly steps through the list, compares adjacent elements, and swaps them if they are in the wrong order. Outstandingly clear to watch, but extremely inefficient for larger arrays.",
+                best: "O(n)", avg: "O(n²)", worst: "O(n²)", space: "O(1)", stable: "Yes"
+            },
+            selection: {
+                name: "Selection Sort",
+                desc: "An in-place comparison sort. It divides the array into sorted and unsorted parts, repeatedly finds the minimum element from the unsorted part, and swaps it to the beginning. Highly predictable step-down execution.",
+                best: "O(n²)", avg: "O(n²)", worst: "O(n²)", space: "O(1)", stable: "No"
+            },
+            insertion: {
+                name: "Insertion Sort",
+                desc: "Constructs the final sorted array one element at a time. For each item, it inserts it into its proper position within the already sorted portion of the array. Excellent for nearly-sorted inputs.",
+                best: "O(n)", avg: "O(n²)", worst: "O(n²)", space: "O(1)", stable: "Yes"
+            },
+            cocktail: {
+                name: "Cocktail Shaker Sort",
+                desc: "A bidirectional variation of Bubble Sort. It passes through the array first from left-to-right, then right-to-left, which mitigates the 'turtle' problem where small values at the end take forever to move to the front.",
+                best: "O(n)", avg: "O(n²)", worst: "O(n²)", space: "O(1)", stable: "Yes"
+            },
+            gnome: {
+                name: "Gnome Sort",
+                desc: "A simple algorithm similar to Insertion Sort except that moving an element to its proper place is accomplished by a series of swaps, like a garden gnome sorting flower pots on a ledge.",
+                best: "O(n)", avg: "O(n²)", worst: "O(n²)", space: "O(1)", stable: "Yes"
+            },
+            oddeven: {
+                name: "Odd-Even Sort",
+                desc: "A parallel bubble sort variation where elements at odd-even indices and even-odd indices are compared and swapped iteratively. It operates symmetrically in distinct alternating phases.",
+                best: "O(n)", avg: "O(n²)", worst: "O(n²)", space: "O(1)", stable: "Yes"
+            },
+            quick: {
+                name: "Quick Sort (Lomuto)",
+                desc: "A highly efficient divide-and-conquer sorting algorithm. It selects a pivot, partitions the array around it (smaller elements to the left, larger to the right), and recursively sorts the sub-arrays.",
+                best: "O(n log n)", avg: "O(n log n)", worst: "O(n²)", space: "O(log n)", stable: "No"
+            },
+            merge: {
+                name: "Merge Sort",
+                desc: "A recursive divide-and-conquer algorithm. It divides the unsorted list into n sublists, then repeatedly merges sublists to produce new sorted sublists until there is only 1 sublist remaining.",
+                best: "O(n log n)", avg: "O(n log n)", worst: "O(n log n)", space: "O(n)", stable: "Yes"
+            },
+            heap: {
+                name: "Heap Sort",
+                desc: "Visualizes the array as a binary tree. It first builds a max-heap, then iteratively extracts the largest element (root) from the heap and places it at the end of the array, rebuilding the heap each step.",
+                best: "O(n log n)", avg: "O(n log n)", worst: "O(n log n)", space: "O(1)", stable: "No"
+            },
+            shell: {
+                name: "Shell Sort",
+                desc: "An generalization of Insertion Sort that allows comparisons and swaps of far-apart elements. It uses a sequence of diminishing gaps to achieve sub-quadratic complexity.",
+                best: "O(n log n)", avg: "O(n^1.25)", worst: "O(n²)", space: "O(1)", stable: "No"
+            },
+            comb: {
+                name: "Comb Sort",
+                desc: "Improves on Bubble Sort by eliminating turtles (small values at the end) using a gap sequence. The gap begins at array size / 1.3 and shrinks by a factor of 1.3 on each pass until it reaches 1.",
+                best: "O(n log n)", avg: "O(n²)", worst: "O(n²)", space: "O(1)", stable: "No"
+            },
+            bitonic: {
+                name: "Bitonic Sort",
+                desc: "A parallel comparison network sort. It converts the sequence into a 'bitonic sequence' (monotonically increasing, then decreasing) and merges segments iteratively. Designed for hardware parallelization.",
+                best: "O(n log² n)", avg: "O(n log² n)", worst: "O(n log² n)", space: "O(n log² n)", stable: "No"
+            },
+            timsort: {
+                name: "Tim Sort",
+                desc: "A highly efficient hybrid stable sorting algorithm derived from Merge Sort and Insertion Sort. It divides the array into small chunks called 'runs', sorts them via Insertion Sort, and merges them using Merge Sort logic.",
+                best: "O(n)", avg: "O(n log n)", worst: "O(n log n)", space: "O(n)", stable: "Yes"
+            },
+            radix: {
+                name: "Radix Sort (LSD)",
+                desc: "A non-comparative integer sorting algorithm. It sorts data with integer keys by grouping keys by the individual digits that share the same significant position and value (base 10). Beautiful digit-bucket sweeps.",
+                best: "O(nk)", avg: "O(nk)", worst: "O(nk)", space: "O(n+k)", stable: "Yes"
+            },
+            counting: {
+                name: "Counting Sort",
+                desc: "A non-comparison sort operating on integers. It counts the number of objects having each distinct key value, then uses arithmetic to determine positions of each key in the output sequence.",
+                best: "O(n+k)", avg: "O(n+k)", worst: "O(n+k)", space: "O(n+k)", stable: "Yes"
+            },
+            cycle: {
+                name: "Cycle Sort",
+                desc: "An in-place, unstable sorting algorithm that is theoretically optimal in terms of the total number of writes to the array. It is based on the idea that the permutation to be sorted can be factored into cycles.",
+                best: "O(n²)", avg: "O(n²)", worst: "O(n²)", space: "O(1)", stable: "No"
+            },
+            pancake: {
+                name: "Pancake Sort",
+                desc: "The only allowed operation is to flip the elements of some prefix of the sequence. Unlike traditional sorts which swap individual pairs, this attempts to sort by sequentially flipping pancakes with a spatula.",
+                best: "O(n)", avg: "O(n²)", worst: "O(n²)", space: "O(1)", stable: "No"
+            },
+            stooge: {
+                name: "Stooge Sort",
+                desc: "An extremely slow, highly recursive sorting algorithm with a time complexity of O(n^2.7). It swaps the first and last elements if out of order, then recursively sorts the first 2/3, then the last 2/3, then the first 2/3 again.",
+                best: "O(n^2.7)", avg: "O(n^2.7)", worst: "O(n^2.7)", space: "O(n)", stable: "No"
+            },
+            bogo: {
+                name: "Bogo Sort",
+                desc: "Also known as permutation sort. It shuffles the array randomly repeatedly, then checks if it's sorted. It has an average runtime of O(n × n!), making it mathematically ridiculous for arrays larger than 8 elements.",
+                best: "O(n)", avg: "O(n × n!)", worst: "Infinite", space: "O(1)", stable: "No"
+            }
+        };
+
+        const QUALITY_COUNTS = {
+            "144p": { count: 25, h: 144 },
+            "240p": { count: 50, h: 240 },
+            "360p": { count: 120, h: 360 },
+            "480p": { count: 200, h: 480 },
+            "720p": { count: 400, h: 720 },
+            "1080p": { count: 750, h: 1080 }
+        };
+
+        const THEMES = {
+            neon: {
+                bg: "#020617",
+                bar: (val, max, state) => {
+                    if (state === 'compare') return '#ef4444';
+                    if (state === 'swap') return '#3b82f6';
+                    if (state === 'pivot') return '#eab308';
+                    const ratio = val / max;
+                    const hue = 300 + (ratio * 60);
+                    return `hsl(${hue}, 95%, 60%)`;
+                }
+            },
+            matrix: {
+                bg: "#050505",
+                bar: (val, max, state) => {
+                    if (state === 'compare') return '#ffffff';
+                    if (state === 'swap') return '#22c55e';
+                    if (state === 'pivot') return '#eab308';
+                    const ratio = val / max;
+                    const brightness = 20 + Math.floor(ratio * 55);
+                    return `rgb(0, ${brightness + 180}, 0)`;
+                }
+            },
+            aurora: {
+                bg: "#090d16",
+                bar: (val, max, state) => {
+                    if (state === 'compare') return '#ec4899';
+                    if (state === 'swap') return '#10b981';
+                    if (state === 'pivot') return '#eab308';
+                    const ratio = val / max;
+                    const hue = 160 + (ratio * 120);
+                    return `hsl(${hue}, 85%, 55%)`;
+                }
+            },
+            rainbow: {
+                bg: "#070a13",
+                bar: (val, max, state) => {
+                    if (state === 'compare') return '#ffffff';
+                    if (state === 'swap') return '#000000';
+                    if (state === 'pivot') return '#f59e0b';
+                    const ratio = val / max;
+                    const hue = ratio * 360;
+                    return `hsl(${hue}, 90%, 55%)`;
+                }
+            },
+            lava: {
+                bg: "#0c0505",
+                bar: (val, max, state) => {
+                    if (state === 'compare') return '#60a5fa';
+                    if (state === 'swap') return '#fb7185';
+                    if (state === 'pivot') return '#eab308';
+                    const ratio = val / max;
+                    const hue = ratio * 45;
+                    return `hsl(${hue}, 95%, 50%)`;
+                }
+            }
+        };
+
+        // Engine states
+        let array = [];
+        let originalArray = [];
+        let arrayState = [];
+        let runSpeed = 15;
+        let isSorting = false;
+        let isPaused = false;
+        let forceStep = false;
+        let totalComparisons = 0;
+        let totalSwaps = 0;
+        let startTime = null;
+        let stopTime = null;
+        let timeInterval = null;
+        let customCountOverride = null;
+        let targetFps = 30; // Frame-rate target state
+        let lastFrameTime = 0; // Throttle tracking timestamp
+
+        // Custom Layout Dimensions Architecture
+        let currentWidth = 640;
+        let currentHeight = 360;
+
+        // Uploaded Media Reference State
+        let uploadedImage = null;
+        let useImage = false;
+        let uploadedAudioBuffer = null;
+
+        // UI DOM elements
+        const canvas = document.getElementById('sort-canvas');
+        const ctx = canvas.getContext('2d');
+        const canvasAspectBox = document.getElementById('canvas-aspect-box');
+        const algoSelect = document.getElementById('algo-select');
+        const aspectRatioSelect = document.getElementById('aspect-ratio-select');
+        const qualityPresetWrapper = document.getElementById('quality-preset-wrapper');
+        const qualitySelect = document.getElementById('quality-select');
+        const customResolutionWrapper = document.getElementById('custom-resolution-wrapper');
+        const customWidthInput = document.getElementById('custom-width-input');
+        const customHeightInput = document.getElementById('custom-height-input');
+        const btnApplyResolution = document.getElementById('btn-apply-resolution');
+        
+        const elementCountInput = document.getElementById('element-count-input');
+        const btnApplyCount = document.getElementById('btn-apply-count');
+        const maxSecondsInput = document.getElementById('max-seconds-input');
+        const fpsSelect = document.getElementById('fps-select');
+        const delaySlider = document.getElementById('delay-slider');
+        const delayLabel = document.getElementById('delay-label');
+        const themeSelect = document.getElementById('theme-select');
+        const statComparisons = document.getElementById('stat-comparisons');
+        const statSwaps = document.getElementById('stat-swaps');
+        const statTime = document.getElementById('stat-time');
+        const infoName = document.getElementById('info-name');
+        const infoDesc = document.getElementById('info-desc');
+        const infoBest = document.getElementById('info-best');
+        const infoAvg = document.getElementById('info-avg');
+        const infoWorst = document.getElementById('info-worst');
+        const infoSpace = document.getElementById('info-space');
+        const infoStable = document.getElementById('info-stable');
+        const btnShuffle = document.getElementById('btn-shuffle');
+        const btnStart = document.getElementById('btn-start');
+        const btnPause = document.getElementById('btn-pause');
+        const btnStep = document.getElementById('btn-step');
+        const btnReset = document.getElementById('btn-reset');
+        const customArrayInput = document.getElementById('custom-array-input');
+        const btnApplyCustom = document.getElementById('btn-apply-custom');
+        const terminal = document.getElementById('console');
+        const resolutionBadge = document.getElementById('resolution-badge');
+        const qualityBadge = document.getElementById('quality-badge');
+        const canvasOverlay = document.getElementById('canvas-overlay');
+        const overlayStats = document.getElementById('overlay-stats');
+
+        // Media Input DOM elements
+        const imageUpload = document.getElementById('image-upload');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const btnClearImage = document.getElementById('btn-clear-image');
+        const audioUpload = document.getElementById('audio-upload');
+        const audioUploadStatus = document.getElementById('audio-upload-status');
+        const btnClearAudio = document.getElementById('btn-clear-audio');
+
+        // Recording State
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isRecording = false;
+        let recordingSeconds = 0;
+        let recordTimerInterval = null;
+        const btnRecord = document.getElementById('btn-record');
+        const btnStopRecord = document.getElementById('btn-stop-record');
+        const recordingStatus = document.getElementById('recording-status');
+        const recordTimer = document.getElementById('record-timer');
+        const recordExportModal = document.getElementById('record-export-modal');
+
+        // --- 2. AUDIO SYNTHESIZER ---
+        let audioCtx = null;
+        let masterGain = null;
+        let audioDestNode = null;
+        let isSoundOn = true;
+        let volumeLevel = 0.5;
+
+        function initAudio() {
+            if (audioCtx) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                audioDestNode = audioCtx.createMediaStreamDestination();
+                
+                masterGain = audioCtx.createGain();
+                masterGain.gain.setValueAtTime(volumeLevel, audioCtx.currentTime);
+                masterGain.connect(audioCtx.destination);
+                
+                document.getElementById('audio-status-indicator').innerText = "ONLINE";
+                document.getElementById('audio-status-indicator').classList.remove('text-slate-300');
+                document.getElementById('audio-status-indicator').classList.add('text-emerald-400');
+                logToConsole("Audio Synthesizer online. Nodes mapped to master bus.");
+            } catch (err) {
+                console.error("Audio Web API initialization failed", err);
+                logToConsole("[System Error] Audio API blocked or not supported on this client.");
+            }
+        }
+
+        function playTone(value, maxValue) {
+            if (!isSoundOn) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (uploadedAudioBuffer) {
+                try {
+                    const source = audioCtx.createBufferSource();
+                    source.buffer = uploadedAudioBuffer;
+
+                    const grainGain = audioCtx.createGain();
+                    grainGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+                    grainGain.gain.linearRampToValueAtTime(volumeLevel * 0.7, audioCtx.currentTime + 0.01);
+                    grainGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+
+                    source.connect(grainGain);
+                    grainGain.connect(masterGain);
+                    if (audioDestNode) {
+                        grainGain.connect(audioDestNode);
+                    }
+
+                    const ratio = value / maxValue;
+                    const safeOffset = ratio * Math.max(0, uploadedAudioBuffer.duration - 0.25);
+                    source.start(audioCtx.currentTime, safeOffset, 0.18);
+                } catch (e) {
+                    console.error("Granular playback failed", e);
+                }
+            } else {
+                const minFreq = 120;
+                const maxFreq = 1100;
+                const percentage = value / maxValue;
+                const freq = minFreq + (percentage * (maxFreq - minFreq));
+
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                gainNode.gain.setValueAtTime(0.001, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.12, audioCtx.currentTime + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+
+                osc.connect(gainNode);
+                gainNode.connect(masterGain);
+                
+                if (audioDestNode) {
+                    gainNode.connect(audioDestNode);
+                }
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.09);
+            }
+        }
+
+        // Sound Toggles
+        const btnToggleSound = document.getElementById('btn-toggle-sound');
+        const soundIcon = document.getElementById('sound-icon');
+        const soundText = document.getElementById('sound-text');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeLabel = document.getElementById('volume-label');
+
+        btnToggleSound.addEventListener('click', () => {
+            isSoundOn = !isSoundOn;
+            if (isSoundOn) {
+                soundIcon.className = "fa-solid fa-volume-high text-indigo-400";
+                soundText.innerText = "Sound ON";
+                logToConsole("Audio feedback enabled.");
+            } else {
+                soundIcon.className = "fa-solid fa-volume-xmark text-slate-500";
+                soundText.innerText = "Sound OFF";
+                logToConsole("Audio feedback silenced.");
+            }
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            volumeLevel = e.target.value / 100;
+            volumeLabel.innerText = `${e.target.value}%`;
+            if (masterGain) {
+                masterGain.gain.setValueAtTime(volumeLevel, audioCtx.currentTime);
+            }
+        });
+
+        // --- 3. SYSTEM HELPER UTILITIES ---
+        function logToConsole(message) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            terminal.innerHTML += `<div><span class="text-indigo-400 font-bold">[${time}]</span> ${message}</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function triggerToast(message, type = "success") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgClass = type === "success" ? "bg-emerald-950 border-emerald-800 text-emerald-200" : "bg-indigo-950 border-indigo-800 text-indigo-200";
+            const iconClass = type === "success" ? "fa-circle-check text-emerald-400" : "fa-info-circle text-indigo-400";
+            
+            toast.className = `flex items-center gap-3 border ${bgClass} px-4 py-3 rounded-xl shadow-2xl text-xs transition duration-300 transform translate-y-2 opacity-0 font-medium`;
+            toast.innerHTML = `<i class="fa-solid ${iconClass} text-sm"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function updateAlgoDetails(algoKey) {
+            const meta = ALGORITHMS[algoKey];
+            if (!meta) return;
+            infoName.innerText = meta.name;
+            infoDesc.innerText = meta.desc;
+            infoBest.innerText = meta.best;
+            infoAvg.innerText = meta.avg;
+            infoWorst.innerText = meta.worst;
+            infoSpace.innerText = meta.space;
+            infoStable.innerText = meta.stable;
+            logToConsole(`Set algorithm to: ${meta.name}`);
+        }
+
+
+        // --- 4. RESOLUTION & ASPECT RATIO CALCULATOR ---
+        function recalculateDimensions() {
+            const ratioMode = aspectRatioSelect.value;
+            
+            if (ratioMode === "custom") {
+                currentWidth = parseInt(customWidthInput.value) || 800;
+                currentHeight = parseInt(customHeightInput.value) || 450;
+                
+                // Ensure layout aspect matches display style container
+                canvasAspectBox.style.aspectRatio = `${currentWidth} / ${currentHeight}`;
+                return;
+            }
+
+            // Parse normal ratio prefixes
+            const parts = ratioMode.split(':');
+            const wRatio = parseInt(parts[0]);
+            const hRatio = parseInt(parts[1]);
+            
+            canvasAspectBox.style.aspectRatio = `${wRatio} / ${hRatio}`;
+
+            // Back-calculate target height boundaries from our quality list
+            const qualityPreset = qualitySelect.value;
+            const targetHeight = QUALITY_COUNTS[qualityPreset].h;
+            
+            currentHeight = targetHeight;
+            currentWidth = Math.round((targetHeight / hRatio) * wRatio);
+        }
+
+
+        // --- 5. CANVAS RENDERING ENGINE ---
+        function renderCanvas() {
+            if (canvas.width !== currentWidth || canvas.height !== currentHeight) {
+                canvas.width = currentWidth;
+                canvas.height = currentHeight;
+            }
+
+            const activeTheme = THEMES[themeSelect.value];
+            ctx.fillStyle = activeTheme.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const totalBars = array.length;
+            const barSpacing = useImage ? 0 : 1;
+            const totalSpacing = barSpacing * (totalBars - 1);
+            const usableWidth = canvas.width - totalSpacing;
+            const barWidth = usableWidth / totalBars;
+
+            const maxVal = Math.max(...array, 1);
+
+            if (useImage && uploadedImage) {
+                const sliceWidth = uploadedImage.width / totalBars;
+                for (let i = 0; i < totalBars; i++) {
+                    const val = array[i];
+                    
+                    const sx = val * sliceWidth;
+                    const sy = 0;
+                    const sw = sliceWidth;
+                    const sh = uploadedImage.height;
+
+                    const dx = i * (barWidth + barSpacing);
+                    const dy = 0;
+                    const dw = barWidth + 0.5;
+                    const dh = canvas.height;
+
+                    ctx.drawImage(uploadedImage, sx, sy, sw, sh, dx, dy, dw, dh);
+
+                    let state = 'normal';
+                    if (arrayState[i]) {
+                        state = arrayState[i];
+                    }
+                    if (state !== 'normal') {
+                        ctx.fillStyle = activeTheme.bar(val, maxVal, state);
+                        ctx.save();
+                        ctx.globalAlpha = 0.5;
+                        ctx.fillRect(dx, dy, dw, dh);
+                        ctx.restore();
+                    }
+                }
+            } else {
+                for (let i = 0; i < totalBars; i++) {
+                    const val = array[i];
+                    const barHeight = (val / maxVal) * (canvas.height - 10);
+
+                    const x = i * (barWidth + barSpacing);
+                    const y = canvas.height - barHeight;
+
+                    let state = 'normal';
+                    if (arrayState[i]) {
+                        state = arrayState[i];
+                    }
+
+                    ctx.fillStyle = activeTheme.bar(val, maxVal, state);
+                    ctx.fillRect(x, y, barWidth, barHeight);
+                }
+            }
+        }
+
+
+        // --- 6. INITIALIZING & LAYOUT GENERATION ---
+        function initArray(layout = "random") {
+            recalculateDimensions();
+            
+            const ratioMode = aspectRatioSelect.value;
+            let numElements = 120; // Default fallback
+
+            if (customCountOverride) {
+                numElements = customCountOverride;
+            } else if (ratioMode === "custom") {
+                // If custom quality mode is typed, guess appropriate element load from target width bounds
+                numElements = Math.min(500, Math.max(10, Math.floor(currentWidth / 5)));
+            } else {
+                numElements = QUALITY_COUNTS[qualitySelect.value].count;
+            }
+
+            resolutionBadge.innerText = `${currentWidth} x ${currentHeight} px (${ratioMode})`;
+            qualityBadge.innerText = `${numElements} elements`;
+
+            array = [];
+            
+            if (useImage) {
+                if (layout === "random") {
+                    for (let i = 0; i < numElements; i++) array.push(i);
+                    for (let i = array.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [array[i], array[j]] = [array[j], array[i]];
+                    }
+                } else if (layout === "reversed") {
+                    for (let i = numElements - 1; i >= 0; i--) array.push(i);
+                } else if (layout === "nearly") {
+                    for (let i = 0; i < numElements; i++) array.push(i);
+                    for (let k = 0; k < Math.floor(numElements * 0.08) + 1; k++) {
+                        const i = Math.floor(Math.random() * numElements);
+                        const j = Math.floor(Math.random() * numElements);
+                        [array[i], array[j]] = [array[j], array[i]];
+                    }
+                } else if (layout === "few") {
+                    const segmentsCount = 5;
+                    const segmentLength = numElements / segmentsCount;
+                    for (let i = 0; i < numElements; i++) {
+                        const segmentIndex = Math.floor(i / segmentLength);
+                        array.push(Math.floor(segmentIndex * segmentLength));
+                    }
+                    for (let i = array.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [array[i], array[j]] = [array[j], array[i]];
+                    }
+                } else if (layout === "hill") {
+                    const half = Math.floor(numElements / 2);
+                    for (let i = 0; i < half; i++) array.push(i * 2);
+                    for (let i = numElements - half; i >= 1; i--) array.push(i * 2);
+                } else if (layout === "sorted") {
+                    for (let i = 0; i < numElements; i++) array.push(i);
+                }
+            } else {
+                if (layout === "random") {
+                    for (let i = 1; i <= numElements; i++) array.push(i);
+                    for (let i = array.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [array[i], array[j]] = [array[j], array[i]];
+                    }
+                } else if (layout === "reversed") {
+                    for (let i = numElements; i >= 1; i--) array.push(i);
+                } else if (layout === "nearly") {
+                    for (let i = 1; i <= numElements; i++) array.push(i);
+                    for (let k = 0; k < Math.floor(numElements * 0.08) + 1; k++) {
+                        const i = Math.floor(Math.random() * numElements);
+                        const j = Math.floor(Math.random() * numElements);
+                        [array[i], array[j]] = [array[j], array[i]];
+                    }
+                } else if (layout === "few") {
+                    const uniquePool = [];
+                    for (let i = 0; i < 5; i++) uniquePool.push(Math.floor(Math.random() * numElements) + 5);
+                    for (let i = 0; i < numElements; i++) array.push(uniquePool[i % uniquePool.length]);
+                    for (let i = array.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [array[i], array[j]] = [array[j], array[i]];
+                    }
+                } else if (layout === "hill") {
+                    const half = Math.floor(numElements / 2);
+                    for (let i = 1; i <= half; i++) array.push(i);
+                    for (let i = numElements - half; i >= 1; i--) array.push(i);
+                } else if (layout === "sorted") {
+                    for (let i = 1; i <= numElements; i++) array.push(i);
+                }
+            }
+
+            originalArray = [...array];
+            arrayState = new Array(array.length).fill(null);
+            
+            totalComparisons = 0;
+            totalSwaps = 0;
+            statComparisons.innerText = "0";
+            statSwaps.innerText = "0";
+            statTime.innerText = "0.00s";
+            clearInterval(timeInterval);
+            canvasOverlay.classList.remove('opacity-100');
+            canvasOverlay.classList.add('pointer-events-none');
+
+            renderCanvas();
+        }
+
+        // Apply custom element count override
+        btnApplyCount.addEventListener('click', () => {
+            const val = parseInt(elementCountInput.value);
+            if (isNaN(val) || val < 5 || val > 1000) {
+                triggerToast("Please enter a valid count between 5 and 1000.", "error");
+                return;
+            }
+            customCountOverride = val;
+            if (isSorting) stopSorting();
+            initArray("random");
+            triggerToast(`Element count overridden to ${val}!`, "success");
+        });
+
+        // Aspect Ratio Layout Config Switcher
+        aspectRatioSelect.addEventListener('change', (e) => {
+            if (e.target.value === "custom") {
+                qualityPresetWrapper.classList.add('hidden');
+                customResolutionWrapper.classList.remove('hidden');
+            } else {
+                qualityPresetWrapper.classList.remove('hidden');
+                customResolutionWrapper.classList.add('hidden');
+            }
+            if (isSorting) stopSorting();
+            initArray("random");
+        });
+
+        // Custom Quality Resolution Input apply button
+        btnApplyResolution.addEventListener('click', () => {
+            const w = parseInt(customWidthInput.value);
+            const h = parseInt(customHeightInput.value);
+            if (isNaN(w) || w < 100 || w > 3840 || isNaN(h) || h < 100 || h > 2160) {
+                triggerToast("Enter values between 100px and 4K limits.", "error");
+                return;
+            }
+            if (isSorting) stopSorting();
+            initArray("random");
+            triggerToast(`Canvas geometry set to ${currentWidth}x${currentHeight}`, "success");
+            logToConsole(`Updated custom grid bounds: ${currentWidth}x${currentHeight}`);
+        });
+
+        // Preset quality switchers
+        qualitySelect.addEventListener('change', () => {
+            if (isSorting) stopSorting();
+            initArray("random");
+        });
+
+        // Limit maximum duration bounds
+        maxSecondsInput.addEventListener('change', () => {
+            let val = parseInt(maxSecondsInput.value);
+            if (isNaN(val) || val < 1) {
+                maxSecondsInput.value = 1;
+            } else if (val > 1000) {
+                maxSecondsInput.value = 1000;
+                triggerToast("Maximum allowed sorting limit is 1000 seconds.", "error");
+            }
+        });
+
+        // Update target FPS frame rate limits
+        fpsSelect.addEventListener('change', (e) => {
+            targetFps = parseInt(e.target.value) || 30;
+            logToConsole(`Frame rate limits locked at ${targetFps} FPS.`);
+            triggerToast(`Framerate capped at ${targetFps} FPS!`, "info");
+        });
+
+        // Apply dynamic layout presets via button bindings
+        document.querySelectorAll('.btn-layout').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.btn-layout').forEach(b => {
+                    b.classList.remove('border-indigo-500/50', 'text-indigo-300', 'bg-indigo-950/20');
+                    b.classList.add('border-slate-800', 'text-slate-400', 'bg-slate-900');
+                });
+                
+                const layout = btn.getAttribute('data-layout');
+                btn.classList.add('border-indigo-500/50', 'text-indigo-300', 'bg-indigo-950/20');
+                btn.classList.remove('border-slate-800', 'text-slate-400', 'bg-slate-900');
+                
+                if (isSorting) stopSorting();
+                initArray(layout);
+            });
+        });
+
+        // Apply manual text custom values
+        btnApplyCustom.addEventListener('click', () => {
+            const rawVal = customArrayInput.value.trim();
+            if (!rawVal) return;
+            try {
+                const parsed = rawVal.split(',').map(v => {
+                    const num = parseInt(v.trim());
+                    if (isNaN(num)) throw new Error("Format error");
+                    return num;
+                });
+                if (parsed.length < 5 || parsed.length > 800) {
+                    triggerToast("Count bounds limit: 5 - 800", "error");
+                    return;
+                }
+                
+                if (isSorting) stopSorting();
+                useImage = false;
+                imagePreviewContainer.classList.add('hidden');
+                
+                customCountOverride = parsed.length;
+                array = parsed;
+                originalArray = [...array];
+                arrayState = new Array(array.length).fill(null);
+                
+                qualityBadge.innerText = `${array.length} custom elements`;
+                renderCanvas();
+                triggerToast("Manual integers applied!", "success");
+            } catch(e) {
+                triggerToast("Ensure only commas and numbers exist.", "error");
+            }
+        });
+
+        delaySlider.addEventListener('input', (e) => {
+            runSpeed = parseInt(e.target.value);
+            delayLabel.innerText = `${runSpeed} ms`;
+        });
+        algoSelect.addEventListener('change', (e) => updateAlgoDetails(e.target.value));
+        themeSelect.addEventListener('change', () => renderCanvas());
+
+        // --- 7. FILE UPLOAD HANDLERS ---
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    uploadedImage = img;
+                    useImage = true;
+                    imagePreview.src = event.target.result;
+                    imagePreviewContainer.classList.remove('hidden');
+                    if (isSorting) stopSorting();
+                    initArray("random");
+                    triggerToast("Image parsed successfully!", "success");
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        btnClearImage.addEventListener('click', () => {
+            uploadedImage = null;
+            useImage = false;
+            imageUpload.value = "";
+            imagePreviewContainer.classList.add('hidden');
+            if (isSorting) stopSorting();
+            initArray("random");
+        });
+
+        audioUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            initAudio();
+            audioUploadStatus.innerText = "Decoding audio...";
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                audioCtx.decodeAudioData(event.target.result)
+                    .then(decodedBuffer => {
+                        uploadedAudioBuffer = decodedBuffer;
+                        audioUploadStatus.innerText = file.name.substring(0, 15) + "...";
+                        btnClearAudio.classList.remove('hidden');
+                        triggerToast("Audio mapped successfully!", "success");
+                    });
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        btnClearAudio.addEventListener('click', () => {
+            uploadedAudioBuffer = null;
+            audioUpload.value = "";
+            audioUploadStatus.innerText = "Select Sound track";
+            btnClearAudio.classList.add('hidden');
+        });
+
+        // --- 8. SORTER PIPELINE ASYNC CONTROLS ---
+        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+        async function tick() {
+            while (isPaused && !forceStep) await sleep(50);
+            if (forceStep) forceStep = false;
+
+            // Enforce maximum sorting seconds duration check
+            if (startTime && isSorting) {
+                const elapsedSeconds = (performance.now() - startTime) / 1000;
+                const maxAllowed = parseInt(maxSecondsInput.value) || 300;
+                if (elapsedSeconds >= maxAllowed) {
+                    logToConsole(`[System Halted] Sorting exceeded maximum duration of ${maxAllowed} seconds.`);
+                    triggerToast(`Timeout! Sorting stopped at ${maxAllowed}s.`, "info");
+                    stopSorting();
+                    throw new Error("SortingTimeoutException");
+                }
+            }
+
+            // Enforce dynamic frame rate limit (FPS throttling)
+            const now = performance.now();
+            const minFrameInterval = 1000 / targetFps;
+            const elapsedSinceLastFrame = now - lastFrameTime;
+            
+            if (elapsedSinceLastFrame < minFrameInterval) {
+                await sleep(minFrameInterval - elapsedSinceLastFrame);
+            }
+            lastFrameTime = performance.now();
+
+            await sleep(runSpeed);
+        }
+
+        function mark(index, state) { if (index >= 0 && index < array.length) arrayState[index] = state; }
+        function clearMarks() { arrayState.fill(null); }
+
+        async function compare(i, j) {
+            totalComparisons++;
+            statComparisons.innerText = totalComparisons;
+            mark(i, 'compare'); mark(j, 'compare');
+            renderCanvas();
+            playTone(array[i], Math.max(...array, 1));
+            await tick();
+            clearMarks();
+            return array[i] - array[j];
+        }
+
+        async function swap(i, j) {
+            totalSwaps++;
+            statSwaps.innerText = totalSwaps;
+            mark(i, 'swap'); mark(j, 'swap');
+            const temp = array[i]; array[i] = array[j]; array[j] = temp;
+            renderCanvas();
+            playTone(array[i], Math.max(...array, 1));
+            await tick();
+            clearMarks();
+        }
+
+        async function setVal(i, newVal) {
+            totalSwaps++;
+            statSwaps.innerText = totalSwaps;
+            mark(i, 'swap');
+            array[i] = newVal;
+            renderCanvas();
+            playTone(newVal, Math.max(...array, 1));
+            await tick();
+            clearMarks();
+        }
+
+        // --- 9. ALGORITHM IMPLEMENTATIONS ---
+        async function runBubbleSort() {
+            const n = array.length;
+            for (let i = 0; i < n - 1; i++) {
+                for (let j = 0; j < n - i - 1; j++) {
+                    if (await compare(j, j + 1) > 0) await swap(j, j + 1);
+                }
+            }
+        }
+
+        async function runSelectionSort() {
+            const n = array.length;
+            for (let i = 0; i < n - 1; i++) {
+                let minIdx = i;
+                mark(i, 'pivot');
+                for (let j = i + 1; j < n; j++) {
+                    if (await compare(j, minIdx) < 0) minIdx = j;
+                }
+                if (minIdx !== i) await swap(i, minIdx);
+            }
+        }
+
+        async function runInsertionSort() {
+            const n = array.length;
+            for (let i = 1; i < n; i++) {
+                let key = array[i]; let j = i - 1;
+                mark(i, 'pivot');
+                while (j >= 0 && array[j] > key) {
+                    totalComparisons++; statComparisons.innerText = totalComparisons;
+                    await setVal(j + 1, array[j]); j = j - 1;
+                }
+                await setVal(j + 1, key);
+            }
+        }
+
+        async function runCocktailSort() {
+            let swapped = true; let start = 0; let end = array.length - 1;
+            while (swapped) {
+                swapped = false;
+                for (let i = start; i < end; ++i) {
+                    if (await compare(i, i + 1) > 0) { await swap(i, i + 1); swapped = true; }
+                }
+                if (!swapped) break;
+                swapped = false; end--;
+                for (let i = end - 1; i >= start; i--) {
+                    if (await compare(i, i + 1) > 0) { await swap(i, i + 1); swapped = true; }
+                }
+                start++;
+            }
+        }
+
+        async function runGnomeSort() {
+            let index = 0;
+            while (index < array.length) {
+                if (index === 0) index++;
+                if (await compare(index, index - 1) >= 0) index++;
+                else { await swap(index, index - 1); index--; }
+            }
+        }
+
+        async function runOddEvenSort() {
+            let isSorted = false;
+            while (!isSorted) {
+                isSorted = true;
+                for (let i = 1; i < array.length - 1; i += 2) {
+                    if (await compare(i, i + 1) > 0) { await swap(i, i + 1); isSorted = false; }
+                }
+                for (let i = 0; i < array.length - 1; i += 2) {
+                    if (await compare(i, i + 1) > 0) { await swap(i, i + 1); isSorted = false; }
+                }
+            }
+        }
+
+        async function runQuickSort() {
+            async function quickSortHelper(low, high) {
+                if (low < high) {
+                    let pi = await partition(low, high);
+                    await quickSortHelper(low, pi - 1);
+                    await quickSortHelper(pi + 1, high);
+                }
+            }
+            async function partition(low, high) {
+                let pivot = array[high]; mark(high, 'pivot'); let i = (low - 1);
+                for (let j = low; j < high; j++) {
+                    if (await compare(j, high) < 0) { i++; await swap(i, j); }
+                }
+                await swap(i + 1, high); return (i + 1);
+            }
+            await quickSortHelper(0, array.length - 1);
+        }
+
+        async function runMergeSort() {
+            async function merge(l, m, r) {
+                let n1 = m - l + 1; let n2 = r - m; let L = []; let R = [];
+                for (let i = 0; i < n1; i++) L.push(array[l + i]);
+                for (let j = 0; j < n2; j++) R.push(array[m + 1 + j]);
+                let i = 0, j = 0, k = l;
+                while (i < n1 && j < n2) {
+                    totalComparisons++; statComparisons.innerText = totalComparisons;
+                    if (L[i] <= R[j]) { await setVal(k, L[i]); i++; }
+                    else { await setVal(k, R[j]); j++; }
+                    k++;
+                }
+                while (i < n1) { await setVal(k, L[i]); i++; k++; }
+                while (j < n2) { await setVal(k, R[j]); j++; k++; }
+            }
+            async function mergeSortHelper(l, r) {
+                if (l >= r) return;
+                let m = l + Math.floor((r - l) / 2);
+                await mergeSortHelper(l, m); await mergeSortHelper(m + 1, r);
+                await merge(l, m, r);
+            }
+            await mergeSortHelper(0, array.length - 1);
+        }
+
+        async function runHeapSort() {
+            const n = array.length;
+            async function heapify(sz, idx) {
+                let largest = idx; let l = 2 * idx + 1; let r = 2 * idx + 2;
+                if (l < sz && await compare(l, largest) > 0) largest = l;
+                if (r < sz && await compare(r, largest) > 0) largest = r;
+                if (largest !== idx) { await swap(idx, largest); await heapify(sz, largest); }
+            }
+            for (let i = Math.floor(n / 2) - 1; i >= 0; i--) await heapify(n, i);
+            for (let i = n - 1; i > 0; i--) { await swap(0, i); await heapify(i, 0); }
+        }
+
+        async function runShellSort() {
+            let n = array.length;
+            for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+                for (let i = gap; i < n; i += 1) {
+                    let temp = array[i]; let j;
+                    for (j = i; j >= gap; j -= gap) {
+                        totalComparisons++; statComparisons.innerText = totalComparisons;
+                        if (array[j - gap] > temp) await setVal(j, array[j - gap]);
+                        else break;
+                    }
+                    await setVal(j, temp);
+                }
+            }
+        }
+
+        async function runCombSort() {
+            let gap = array.length; let shrink = 1.3; let sorted = false;
+            while (!sorted) {
+                gap = Math.floor(gap / shrink);
+                if (gap <= 1) { gap = 1; sorted = true; }
+                let i = 0;
+                while (i + gap < array.length) {
+                    if (await compare(i, i + gap) > 0) { await swap(i, i + gap); sorted = false; }
+                    i++;
+                }
+            }
+        }
+
+        async function runBitonicSort() {
+            const n = array.length;
+            async function bitonicMerge(low, cnt, dir) {
+                if (cnt > 1) {
+                    let k = Math.floor(cnt / 2);
+                    for (let i = low; i < low + k; i++) {
+                        if (i + k < n) {
+                            const compVal = await compare(i, i + k);
+                            if ((dir === 1 && compVal > 0) || (dir === 0 && compVal < 0)) await swap(i, i + k);
+                        }
+                    }
+                    await bitonicMerge(low, k, dir); await bitonicMerge(low + k, k, dir);
+                }
+            }
+            async function bitonicSortHelper(low, cnt, dir) {
+                if (cnt > 1) {
+                    let k = Math.floor(cnt / 2);
+                    await bitonicSortHelper(low, k, 1); await bitonicSortHelper(low + k, k, 0);
+                    await bitonicMerge(low, cnt, dir);
+                }
+            }
+            await bitonicSortHelper(0, n, 1);
+        }
+
+        // 13. Tim Sort Implementation
+        async function runTimSort() {
+            const n = array.length;
+            const RUN = 32;
+
+            async function insertionSortForTim(left, right) {
+                for (let i = left + 1; i <= right; i++) {
+                    let temp = array[i];
+                    let j = i - 1;
+                    mark(i, 'pivot');
+                    while (j >= left && array[j] > temp) {
+                        totalComparisons++;
+                        statComparisons.innerText = totalComparisons;
+                        await setVal(j + 1, array[j]);
+                        j--;
+                    }
+                    await setVal(j + 1, temp);
+                }
+            }
+
+            async function mergeForTim(l, m, r) {
+                let len1 = m - l + 1;
+                let len2 = r - m;
+                let left = [];
+                let right = [];
+                for (let i = 0; i < len1; i++) left.push(array[l + i]);
+                for (let i = 0; i < len2; i++) right.push(array[m + 1 + i]);
+
+                let i = 0, j = 0, k = l;
+                while (i < len1 && j < len2) {
+                    totalComparisons++;
+                    statComparisons.innerText = totalComparisons;
+                    if (left[i] <= right[j]) {
+                        await setVal(k, left[i]);
+                        i++;
+                    } else {
+                        await setVal(k, right[j]);
+                        j++;
+                    }
+                    k++;
+                }
+                while (i < len1) {
+                    await setVal(k, left[i]);
+                    i++;
+                    k++;
+                }
+                while (j < len2) {
+                    await setVal(k, right[j]);
+                    j++;
+                    k++;
+                }
+            }
+
+            // Sort individual subarrays of size RUN
+            for (let i = 0; i < n; i += RUN) {
+                await insertionSortForTim(i, Math.min(i + RUN - 1, n - 1));
+            }
+
+            // Merge runs
+            for (let size = RUN; size < n; size = 2 * size) {
+                for (let left = 0; left < n; left += 2 * size) {
+                    let mid = left + size - 1;
+                    let right = Math.min(left + 2 * size - 1, n - 1);
+
+                    if (mid < right) {
+                        await mergeForTim(left, mid, right);
+                    }
+                }
+            }
+        }
+
+        async function runRadixSort() {
+            const maxVal = Math.max(...array);
+            async function countingSortForRadix(exp) {
+                const n = array.length; let output = new Array(n).fill(0); let count = new Array(10).fill(0);
+                for (let i = 0; i < n; i++) count[Math.floor(array[i] / exp) % 10]++;
+                for (let i = 1; i < 10; i++) count[i] += count[i - 1];
+                for (let i = n - 1; i >= 0; i--) {
+                    let digit = Math.floor(array[i] / exp) % 10;
+                    output[count[digit] - 1] = array[i]; count[digit]--;
+                }
+                for (let i = 0; i < n; i++) await setVal(i, output[i]);
+            }
+            for (let exp = 1; Math.floor(maxVal / exp) > 0; exp *= 10) await countingSortForRadix(exp);
+        }
+
+        async function runCountingSort() {
+            const maxVal = Math.max(...array); const count = new Array(maxVal + 1).fill(0);
+            for (let i = 0; i < array.length; i++) {
+                count[array[i]]++; mark(i, 'compare'); renderCanvas(); await tick(); clearMarks();
+            }
+            let idx = 0;
+            for (let i = 0; i <= maxVal; i++) {
+                while (count[i] > 0) { await setVal(idx, i); idx++; count[i]--; }
+            }
+        }
+
+        async function runCycleSort() {
+            const n = array.length;
+            for (let cycleStart = 0; cycleStart <= n - 2; cycleStart++) {
+                let item = array[cycleStart]; let pos = cycleStart;
+                for (let i = cycleStart + 1; i < n; i++) { if (await compare(i, cycleStart) < 0) pos++; }
+                if (pos === cycleStart) continue;
+                while (item === array[pos]) pos++;
+                if (pos !== cycleStart) { const temp = array[pos]; await setVal(pos, item); item = temp; }
+                while (pos !== cycleStart) {
+                    pos = cycleStart;
+                    for (let i = cycleStart + 1; i < n; i++) {
+                        totalComparisons++; statComparisons.innerText = totalComparisons;
+                        if (array[i] < item) pos++;
+                    }
+                    while (item === array[pos]) pos++;
+                    if (item !== array[pos]) { const temp = array[pos]; await setVal(pos, item); item = temp; }
+                }
+            }
+        }
+
+        async function runPancakeSort() {
+            async function flip(k) {
+                let left = 0;
+                while (left < k) { await swap(left, k); left++; k--; }
+            }
+            for (let currSize = array.length; currSize > 1; currSize--) {
+                let maxIdx = 0;
+                for (let i = 1; i < currSize; i++) { if (await compare(i, maxIdx) > 0) maxIdx = i; }
+                if (maxIdx !== currSize - 1) {
+                    if (maxIdx !== 0) await flip(maxIdx);
+                    await flip(currSize - 1);
+                }
+            }
+        }
+
+        async function runStoogeSort() {
+            async function stoogeSortHelper(l, h) {
+                if (await compare(l, h) > 0) await swap(l, h);
+                if (h - l + 1 > 2) {
+                    let t = Math.floor((h - l + 1) / 3);
+                    await stoogeSortHelper(l, h - t); await stoogeSortHelper(l + t, h); await stoogeSortHelper(l, h - t);
+                }
+            }
+            await stoogeSortHelper(0, array.length - 1);
+        }
+
+        async function runBogoSort() {
+            if (array.length > 7) return;
+            async function isSorted() {
+                for (let i = 0; i < array.length - 1; i++) { if (await compare(i, i + 1) > 0) return false; }
+                return true;
+            }
+            while (!(await isSorted())) {
+                for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); await swap(i, j); }
+            }
+        }
+
+        // --- 10. VISUALIZER MASTER LOOP ---
+        async function startSorting() {
+            if (isSorting) return;
+            initAudio();
+            isSorting = true; isPaused = false; forceStep = false;
+            
+            btnStart.classList.add('hidden'); btnPause.classList.remove('hidden');
+            btnShuffle.disabled = true; btnShuffle.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            startTime = performance.now();
+            timeInterval = setInterval(() => {
+                if (isSorting && !isPaused) {
+                    statTime.innerText = ((performance.now() - startTime) / 1000).toFixed(2) + "s";
+                }
+            }, 50);
+
+            const selectedAlgo = algoSelect.value;
+            try {
+                switch (selectedAlgo) {
+                    case 'bubble': await runBubbleSort(); break;
+                    case 'selection': await runSelectionSort(); break;
+                    case 'insertion': await runInsertionSort(); break;
+                    case 'cocktail': await runCocktailSort(); break;
+                    case 'gnome': await runGnomeSort(); break;
+                    case 'oddeven': await runOddEvenSort(); break;
+                    case 'quick': await runQuickSort(); break;
+                    case 'merge': await runMergeSort(); break;
+                    case 'heap': await runHeapSort(); break;
+                    case 'shell': await runShellSort(); break;
+                    case 'comb': await runCombSort(); break;
+                    case 'bitonic': await runBitonicSort(); break;
+                    case 'timsort': await runTimSort(); break;
+                    case 'radix': await runRadixSort(); break;
+                    case 'counting': await runCountingSort(); break;
+                    case 'cycle': await runCycleSort(); break;
+                    case 'pancake': await runPancakeSort(); break;
+                    case 'stooge': await runStoogeSort(); break;
+                    case 'bogo': await runBogoSort(); break;
+                }
+                if (isSorting) {
+                    const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+                    overlayStats.innerText = `Time: ${elapsed}s • Swaps: ${totalSwaps} • Comps: ${totalComparisons}`;
+                    canvasOverlay.classList.remove('pointer-events-none'); canvasOverlay.classList.add('opacity-100');
+                }
+            } catch(err) {
+                if (err.message === "SortingTimeoutException") {
+                    console.warn("Algorithm halted due to user-defined duration timeout.");
+                } else {
+                    console.error(err);
+                }
+            } finally {
+                stopSorting();
+            }
+        }
+
+        function stopSorting() {
+            isSorting = false; isPaused = false; forceStep = false;
+            clearInterval(timeInterval);
+            btnStart.classList.remove('hidden'); btnPause.classList.add('hidden');
+            btnShuffle.disabled = false; btnShuffle.classList.remove('opacity-50', 'cursor-not-allowed');
+            clearMarks(); renderCanvas();
+        }
+
+        function togglePause() {
+            if (!isSorting) return;
+            isPaused = !isPaused;
+            if (isPaused) {
+                btnPause.innerHTML = `<i class="fa-solid fa-play"></i> Resume Sort`;
+                btnPause.className = btnPause.className.replace('bg-amber-600', 'bg-indigo-600');
+            } else {
+                btnPause.innerHTML = `<i class="fa-solid fa-pause"></i> Pause Sort`;
+                btnPause.className = btnPause.className.replace('bg-indigo-600', 'bg-amber-600');
+            }
+        }
+
+        // --- 11. STREAM RECORDER ENGINE ---
+        function startRecording() {
+            if (isRecording) return;
+            initAudio();
+            
+            // Prioritize standard MP4 container types
+            let chosenMimeType = 'video/mp4;codecs=h264';
+            if (MediaRecorder.isTypeSupported('video/mp4;codecs=h264,aac')) {
+                chosenMimeType = 'video/mp4;codecs=h264,aac';
+            } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+                chosenMimeType = 'video/mp4';
+            } else if (MediaRecorder.isTypeSupported('video/webm;codecs=h264')) {
+                chosenMimeType = 'video/webm;codecs=h264';
+            } else {
+                chosenMimeType = 'video/webm';
+            }
+            
+            document.getElementById('video-format-indicator').innerText = "MP4";
+
+            // Configure stream with exact frame rate selected in FPS dropdown
+            const canvasStream = canvas.captureStream(targetFps);
+            const combinedStream = new MediaStream();
+            canvasStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
+            if (audioDestNode && audioDestNode.stream) {
+                audioDestNode.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
+            }
+
+            try {
+                recordedChunks = [];
+                mediaRecorder = new MediaRecorder(combinedStream, { mimeType: chosenMimeType, videoBitsPerSecond: 5000000 });
+                mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) recordedChunks.push(e.data); };
+                mediaRecorder.onstop = () => {
+                    setTimeout(() => {
+                        const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url; 
+                        
+                        // Force direct MP4 container output download name
+                        a.download = `algorun_${algoSelect.value}_${Date.now()}.mp4`;
+                        document.body.appendChild(a); a.click();
+                        setTimeout(() => { a.remove(); window.URL.revokeObjectURL(url); recordExportModal.classList.add('hidden'); }, 1000);
+                    }, 1500);
+                };
+                mediaRecorder.start(100);
+                isRecording = true;
+                btnRecord.classList.add('hidden'); btnStopRecord.classList.remove('hidden');
+                recordingStatus.classList.replace('hidden', 'flex');
+                recordingSeconds = 0; recordTimer.innerText = "00:00";
+                recordTimerInterval = setInterval(() => {
+                    recordingSeconds++;
+                    recordTimer.innerText = `${Math.floor(recordingSeconds / 60).toString().padStart(2, '0')}:${(recordingSeconds % 60).toString().padStart(2, '0')}`;
+                }, 1000);
+            } catch (err) { triggerToast("Recorder initialization broken.", "error"); }
+        }
+
+        function stopRecording() {
+            if (!isRecording) return;
+            clearInterval(recordTimerInterval);
+            recordExportModal.classList.remove('hidden');
+            mediaRecorder.stop(); isRecording = false;
+            btnRecord.classList.remove('hidden'); btnStopRecord.classList.add('hidden');
+            recordingStatus.classList.replace('flex', 'hidden');
+        }
+
+        // --- 12. RUN ENGINE INITIALIZERS ---
+        btnStart.addEventListener('click', startSorting);
+        btnPause.addEventListener('click', togglePause);
+        btnShuffle.addEventListener('click', () => { initArray("random"); triggerToast("Array randomized!", "info"); });
+        btnStep.addEventListener('click', () => {
+            if (!isSorting) { startSorting(); isPaused = true; setTimeout(() => { forceStep = true; }, 100); }
+            else forceStep = true;
+        });
+        btnReset.addEventListener('click', () => {
+            if (isSorting) stopSorting();
+            array = [...originalArray]; arrayState = new Array(array.length).fill(null);
+            canvasOverlay.classList.replace('opacity-100', 'opacity-0'); canvasOverlay.classList.add('pointer-events-none');
+            renderCanvas();
+        });
+        btnRecord.addEventListener('click', startRecording);
+        btnStopRecord.addEventListener('click', stopRecording);
+        document.getElementById('btn-clear-logs').addEventListener('click', () => {
+            terminal.innerHTML = `<div class="text-slate-500">[System] Log cleared.</div>`;
+        });
+
+        window.addEventListener('resize', () => renderCanvas());
+        window.onload = () => { updateAlgoDetails('bubble'); initArray('random'); };
+    </script>
+</body>
+</html>
